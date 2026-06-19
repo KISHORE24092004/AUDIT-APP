@@ -342,5 +342,6 @@ def logout():
     flash("You have logged out successfully.", "info")
     return redirect(url_for('login'))
 
+# Production deploy trigger comment
 if __name__ == '__main__':
     app.run(debug=True, port=5000, host='0.0.0.0')
