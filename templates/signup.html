@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+
+{% block title %}Create Account - Portal{% endblock %}
+
+{% block content %}
+<div class="glass-card">
+  <h1>Get Started</h1>
+  <p class="subtitle">Create a secure account with us to view the dashboard.</p>
+  
+  <form action="{{ url_for('signup') }}" method="POST" autocomplete="off">
+    <!-- Username Input -->
+    <div class="form-group">
+      <div class="input-container">
+        <i class="fa-solid fa-user input-icon"></i>
+        <input 
+          type="text" 
+          name="username" 
+          id="username" 
+          class="form-control" 
+          placeholder="Username" 
+          required 
+          value="{{ username or '' }}"
+        >
+      </div>
+    </div>
+    
+    <!-- Password Input -->
+    <div class="form-group">
+      <div class="input-container">
+        <i class="fa-solid fa-lock input-icon"></i>
+        <input 
+          type="password" 
+          name="password" 
+          id="password" 
+          class="form-control" 
+          placeholder="Password" 
+          required
+        >
+        <i class="fa-solid fa-eye password-toggle" data-target="password"></i>
+      </div>
+      <!-- Password Strength Indicator -->
+      <div class="strength-container">
+        <div class="strength-bar"></div>
+        <div class="strength-bar"></div>
+        <div class="strength-bar"></div>
+        <div class="strength-bar"></div>
+      </div>
+      <span class="strength-text">Strength: </span>
+    </div>
+
+    <!-- Confirm Password Input -->
+    <div class="form-group">
+      <div class="input-container">
+        <i class="fa-solid fa-shield-halved input-icon"></i>
+        <input 
+          type="password" 
+          name="confirm_password" 
+          id="confirm_password" 
+          class="form-control" 
+          placeholder="Confirm Password" 
+          required
+        >
+        <i class="fa-solid fa-eye password-toggle" data-target="confirm_password"></i>
+      </div>
+    </div>
+    
+    <!-- Submit Button -->
+    <button type="submit" class="btn">
+      <span>Create Account</span>
+      <i class="fa-solid fa-user-plus"></i>
+    </button>
+  </form>
+  
+  <!-- Footer Link -->
+  <p class="footer-text">
+    Already have an account? 
+    <a href="{{ url_for('login') }}" class="footer-link">Sign In</a>
+  </p>
+</div>
+{% endblock %}

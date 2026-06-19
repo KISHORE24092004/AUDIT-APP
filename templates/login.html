@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block title %}Sign In - Portal{% endblock %}
+
+{% block content %}
+<div class="glass-card">
+  <h1>Welcome Back</h1>
+  <p class="subtitle">Enter your credentials to access your secure account.</p>
+  
+  <form action="{{ url_for('login') }}" method="POST" autocomplete="off">
+    <!-- Username Input -->
+    <div class="form-group">
+      <div class="input-container">
+        <i class="fa-solid fa-user input-icon"></i>
+        <input 
+          type="text" 
+          name="username" 
+          id="username" 
+          class="form-control" 
+          placeholder="Username" 
+          required 
+          value="{{ username or '' }}"
+        >
+      </div>
+    </div>
+    
+    <!-- Password Input -->
+    <div class="form-group">
+      <div class="input-container">
+        <i class="fa-solid fa-lock input-icon"></i>
+        <input 
+          type="password" 
+          name="password" 
+          id="password" 
+          class="form-control" 
+          placeholder="Password" 
+          required
+        >
+        <i class="fa-solid fa-eye password-toggle" data-target="password"></i>
+      </div>
+    </div>
+    
+    <!-- Submit Button -->
+    <button type="submit" class="btn">
+      <span>Sign In</span>
+      <i class="fa-solid fa-arrow-right-to-bracket"></i>
+    </button>
+  </form>
+  
+  <!-- Footer Link -->
+  <p class="footer-text">
+    Don't have an account? 
+    <a href="{{ url_for('signup') }}" class="footer-link">Sign Up</a>
+  </p>
+</div>
+{% endblock %}

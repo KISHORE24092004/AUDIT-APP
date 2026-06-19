@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+
+{% block title %}Water Readings - Portal{% endblock %}
+
+{% block content %}
+<div class="dashboard-layout" style="max-width: 900px;">
+  <!-- Header -->
+  <header class="dashboard-header">
+    <div>
+      <h1>Water Valve Readings</h1>
+      <p class="subtitle" style="margin-bottom: 0;">Submit daily telemetry flow logs for all 16 valves.</p>
+    </div>
+    
+    <div style="display: flex; align-items: center; gap: 16px;">
+      <div class="user-badge">
+        <div class="user-avatar">
+          {{ (user.username if user.username else user.email.split('@')[0])[0].upper() }}
+        </div>
+        <span class="user-email">@{{ user.username if user.username else user.email.split('@')[0] }}</span>
+      </div>
+      
+      <a href="{{ url_for('logout') }}" class="btn btn-secondary">
+        <i class="fa-solid fa-arrow-right-from-bracket"></i>
+        <span>Logout</span>
+      </a>
+    </div>
+  </header>
+
+  <!-- Breadcrumbs -->
+  <div class="breadcrumbs">
+    <a href="{{ url_for('dashboard') }}" class="breadcrumb-item"><i class="fa-solid fa-house"></i> Dashboard</a>
+    <span class="breadcrumb-separator"><i class="fa-solid fa-chevron-right"></i></span>
+    <a href="{{ url_for('daily') }}" class="breadcrumb-item">Daily</a>
+    <span class="breadcrumb-separator"><i class="fa-solid fa-chevron-right"></i></span>
+    <a href="{{ url_for('readings') }}" class="breadcrumb-item">Readings</a>
+    <span class="breadcrumb-separator"><i class="fa-solid fa-chevron-right"></i></span>
+    <span class="breadcrumb-active">Water</span>
+  </div>
+
+  <form action="{{ url_for('water_readings') }}" method="POST">
+    <div class="readings-container">
+      <div class="readings-grid">
+        
+        <!-- VALVES 1 - 8 -->
+        <div class="table-wrapper">
+          <h2 class="table-wrapper-title">Valves Group A</h2>
+          <table class="readings-table">
+            <thead>
+              <tr>
+                <th>Valve Name</th>
+                <th>Flow Reading (m³/h)</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for i in range(1, 9) %}
+              <tr>
+                <td style="font-weight: 500;">VALVE {{ i }}</td>
+                <td>
+                  <input 
+                    type="text" 
+                    name="valve_{{ i }}" 
+                    class="table-input" 
+                    placeholder="Enter reading" 
+                    value="{{ data.get('valve_' ~ i, '') }}"
+                  >
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+        <!-- VALVES 9 - 16 -->
+        <div class="table-wrapper">
+          <h2 class="table-wrapper-title">Valves Group B</h2>
+          <table class="readings-table">
+            <thead>
+              <tr>
+                <th>Valve Name</th>
+                <th>Flow Reading (m³/h)</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for i in range(9, 17) %}
+              <tr>
+                <td style="font-weight: 500;">VALVE {{ i }}</td>
+                <td>
+                  <input 
+                    type="text" 
+                    name="valve_{{ i }}" 
+                    class="table-input" 
+                    placeholder="Enter reading" 
+                    value="{{ data.get('valve_' ~ i, '') }}"
+                  >
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+
+      <!-- Action buttons -->
+      <div class="readings-actions">
+        <button type="submit" class="btn btn-save" style="background-color: #3b82f6;">
+          <i class="fa-solid fa-cloud-arrow-up"></i> Save Readings
+        </button>
+      </div>
+
+    </div>
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,183 @@
+{% extends "base.html" %}
+
+{% block title %}Power Readings - Portal{% endblock %}
+
+{% block content %}
+<div class="dashboard-layout" style="max-width: 1000px;">
+  <!-- Header -->
+  <header class="dashboard-header">
+    <div>
+      <h1>Power House Readings</h1>
+      <p class="subtitle" style="margin-bottom: 0;">Submit daily solar and electrical line telemetry.</p>
+    </div>
+    
+    <div style="display: flex; align-items: center; gap: 16px;">
+      <div class="user-badge">
+        <div class="user-avatar">
+          {{ (user.username if user.username else user.email.split('@')[0])[0].upper() }}
+        </div>
+        <span class="user-email">@{{ user.username if user.username else user.email.split('@')[0] }}</span>
+      </div>
+      
+      <a href="{{ url_for('logout') }}" class="btn btn-secondary">
+        <i class="fa-solid fa-arrow-right-from-bracket"></i>
+        <span>Logout</span>
+      </a>
+    </div>
+  </header>
+
+  <!-- Breadcrumbs -->
+  <div class="breadcrumbs">
+    <a href="{{ url_for('dashboard') }}" class="breadcrumb-item"><i class="fa-solid fa-house"></i> Dashboard</a>
+    <span class="breadcrumb-separator"><i class="fa-solid fa-chevron-right"></i></span>
+    <a href="{{ url_for('daily') }}" class="breadcrumb-item">Daily</a>
+    <span class="breadcrumb-separator"><i class="fa-solid fa-chevron-right"></i></span>
+    <a href="{{ url_for('readings') }}" class="breadcrumb-item">Readings</a>
+    <span class="breadcrumb-separator"><i class="fa-solid fa-chevron-right"></i></span>
+    <span class="breadcrumb-active">Power</span>
+  </div>
+
+  <form action="{{ url_for('power_readings') }}" method="POST">
+    <div class="readings-container">
+      <div class="readings-grid">
+        
+        <!-- POWER HOUSE 1 -->
+        <div class="table-wrapper">
+          <h2 class="table-wrapper-title">Power House 1</h2>
+          <table class="readings-table">
+            <thead>
+              <tr>
+                <th>Parameters</th>
+                <th>Value (kW)</th>
+                <th style="width: 100px;">PF</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- SOLAR SECTION -->
+              <tr class="table-group-header">
+                <td>SOLAR</td>
+                <td></td>
+                <td></td>
+              </tr>
+              <tr>
+                <td style="padding-left: 24px;">75 KW:</td>
+                <td><input type="text" name="ph1_solar_75" class="table-input" placeholder="Value" value="{{ data.get('ph1_solar_75', '') }}"></td>
+                <td><input type="text" name="ph1_solar_75_pf" class="table-input" placeholder="PF" value="{{ data.get('ph1_solar_75_pf', '') }}"></td>
+              </tr>
+              <tr>
+                <td style="padding-left: 24px;">33 KW:</td>
+                <td><input type="text" name="ph1_solar_33" class="table-input" placeholder="Value" value="{{ data.get('ph1_solar_33', '') }}"></td>
+                <td><input type="text" name="ph1_solar_33_pf" class="table-input" placeholder="PF" value="{{ data.get('ph1_solar_33_pf', '') }}"></td>
+              </tr>
+
+              <!-- POWER LINE SECTION -->
+              <tr class="table-group-header">
+                <td>POWER LINE</td>
+                <td></td>
+                <td></td>
+              </tr>
+              <tr>
+                <td style="padding-left: 24px;">IMPORT:</td>
+                <td><input type="text" name="ph1_line_import" class="table-input" placeholder="Value" value="{{ data.get('ph1_line_import', '') }}"></td>
+                <td><input type="text" name="ph1_line_import_pf" class="table-input" placeholder="PF" value="{{ data.get('ph1_line_import_pf', '') }}"></td>
+              </tr>
+              <tr>
+                <td style="padding-left: 24px;">EXPORT:</td>
+                <td><input type="text" name="ph1_line_export" class="table-input" placeholder="Value" value="{{ data.get('ph1_line_export', '') }}"></td>
+                <td><input type="text" name="ph1_line_export_pf" class="table-input" placeholder="PF" value="{{ data.get('ph1_line_export_pf', '') }}"></td>
+              </tr>
+
+              <!-- WELDING LINE SECTION -->
+              <tr class="table-group-header">
+                <td>WELDING LINE</td>
+                <td></td>
+                <td></td>
+              </tr>
+              <tr>
+                <td style="padding-left: 24px;">IMPORT:</td>
+                <td><input type="text" name="ph1_weld_import" class="table-input" placeholder="Value" value="{{ data.get('ph1_weld_import', '') }}"></td>
+                <td><input type="text" name="ph1_weld_import_pf" class="table-input" placeholder="PF" value="{{ data.get('ph1_weld_import_pf', '') }}"></td>
+              </tr>
+              <tr>
+                <td style="padding-left: 24px;">EXPORT:</td>
+                <td><input type="text" name="ph1_weld_export" class="table-input" placeholder="Value" value="{{ data.get('ph1_weld_export', '') }}"></td>
+                <td><input type="text" name="ph1_weld_export_pf" class="table-input" placeholder="PF" value="{{ data.get('ph1_weld_export_pf', '') }}"></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- POWER HOUSE 2 -->
+        <div class="table-wrapper">
+          <h2 class="table-wrapper-title">Power House 2</h2>
+          <table class="readings-table">
+            <thead>
+              <tr>
+                <th>Parameters</th>
+                <th>Value (kW)</th>
+                <th style="width: 100px;">PF</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- SOLAR SECTION -->
+              <tr class="table-group-header">
+                <td>SOLAR</td>
+                <td></td>
+                <td></td>
+              </tr>
+              <tr>
+                <td style="padding-left: 24px;">90 KW:</td>
+                <td><input type="text" name="ph2_solar_90" class="table-input" placeholder="Value" value="{{ data.get('ph2_solar_90', '') }}"></td>
+                <td><input type="text" name="ph2_solar_90_pf" class="table-input" placeholder="PF" value="{{ data.get('ph2_solar_90_pf', '') }}"></td>
+              </tr>
+
+              <!-- POWER LINE SECTION -->
+              <tr class="table-group-header">
+                <td>POWER LINE</td>
+                <td></td>
+                <td></td>
+              </tr>
+              <tr>
+                <td style="padding-left: 24px;">IMPORT:</td>
+                <td><input type="text" name="ph2_line_import" class="table-input" placeholder="Value" value="{{ data.get('ph2_line_import', '') }}"></td>
+                <td><input type="text" name="ph2_line_import_pf" class="table-input" placeholder="PF" value="{{ data.get('ph2_line_import_pf', '') }}"></td>
+              </tr>
+              <tr>
+                <td style="padding-left: 24px;">EXPORT:</td>
+                <td><input type="text" name="ph2_line_export" class="table-input" placeholder="Value" value="{{ data.get('ph2_line_export', '') }}"></td>
+                <td><input type="text" name="ph2_line_export_pf" class="table-input" placeholder="PF" value="{{ data.get('ph2_line_export_pf', '') }}"></td>
+              </tr>
+
+              <!-- WELDING LINE SECTION -->
+              <tr class="table-group-header">
+                <td>WELDING LINE</td>
+                <td></td>
+                <td></td>
+              </tr>
+              <tr>
+                <td style="padding-left: 24px;">IMPORT:</td>
+                <td><input type="text" name="ph2_weld_import" class="table-input" placeholder="Value" value="{{ data.get('ph2_weld_import', '') }}"></td>
+                <td><input type="text" name="ph2_weld_import_pf" class="table-input" placeholder="PF" value="{{ data.get('ph2_weld_import_pf', '') }}"></td>
+              </tr>
+              <tr>
+                <td style="padding-left: 24px;">EXPORT:</td>
+                <td><input type="text" name="ph2_weld_export" class="table-input" placeholder="Value" value="{{ data.get('ph2_weld_export', '') }}"></td>
+                <td><input type="text" name="ph2_weld_export_pf" class="table-input" placeholder="PF" value="{{ data.get('ph2_weld_export_pf', '') }}"></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+
+      <!-- Action buttons -->
+      <div class="readings-actions">
+        <button type="submit" class="btn btn-save">
+          <i class="fa-solid fa-cloud-arrow-up"></i> Save Readings
+        </button>
+      </div>
+
+    </div>
+  </form>
+</div>
+{% endblock %}

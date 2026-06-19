@@ -1,0 +1,21 @@
+# Environment variables
+.env
+.env*.local
+
+# Virtual environment
+venv/
+ENV/
+env/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Local database files
+readings.json
+users.json
+
+# IDE config
+.vscode/
+.idea/
