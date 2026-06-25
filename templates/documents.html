@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block title %}Documents - Portal{% endblock %}
+
+{% block content %}
+<div class="dashboard-layout">
+  <!-- Header -->
+  <header class="dashboard-header">
+    <div>
+      <h1>Documents & Reports</h1>
+      <p class="subtitle" style="margin-bottom: 0;">Download Excel telemetry spreadsheets for your audit logs.</p>
+    </div>
+    
+    <div style="display: flex; align-items: center; gap: 16px;">
+      <div class="user-badge">
+        <div class="user-avatar">
+          {{ (user.username if user.username else user.email.split('@')[0])[0].upper() }}
+        </div>
+        <span class="user-email">@{{ user.username if user.username else user.email.split('@')[0] }}</span>
+      </div>
+      
+      <a href="{{ url_for('logout') }}" class="btn btn-secondary">
+        <i class="fa-solid fa-arrow-right-from-bracket"></i>
+        <span>Logout</span>
+      </a>
+    </div>
+  </header>
+
+  <!-- Breadcrumbs -->
+  <div class="breadcrumbs">
+    <a href="{{ url_for('dashboard') }}" class="breadcrumb-item"><i class="fa-solid fa-house"></i> Dashboard</a>
+    <span class="breadcrumb-separator"><i class="fa-solid fa-chevron-right"></i></span>
+    <span class="breadcrumb-active">Documents</span>
+  </div>
+
+  <!-- Documents Grid -->
+  <div class="nav-grid">
+    <!-- Power Excel Card -->
+    <a href="{{ url_for('export_power') }}" class="nav-card" style="text-decoration: none;">
+      <div class="nav-card-icon" style="color: #10b981;">
+        <i class="fa-solid fa-file-excel"></i>
+      </div>
+      <span class="nav-card-title">Power House Excel</span>
+      <p style="font-size: 12px; color: var(--text-muted); margin-top: 8px; text-align: center;">Download solar & line readings</p>
+    </a>
+
+    <!-- Water Excel Card -->
+    <a href="{{ url_for('export_water') }}" class="nav-card" style="text-decoration: none;">
+      <div class="nav-card-icon" style="color: #10b981;">
+        <i class="fa-solid fa-file-excel"></i>
+      </div>
+      <span class="nav-card-title">Water Valves Excel</span>
+      <p style="font-size: 12px; color: var(--text-muted); margin-top: 8px; text-align: center;">Download flow logs for 1-16 valves</p>
+    </a>
+  </div>
+</div>
+{% endblock %}

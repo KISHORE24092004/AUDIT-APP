@@ -277,6 +277,13 @@ def dashboard():
     user = session['user']
     return render_template('dashboard.html', user=user)
 
+# Documents Dashboard (Excel/CSV Export List)
+@app.route('/dashboard/documents')
+@login_required
+def documents():
+    user = session['user']
+    return render_template('documents.html', user=user)
+
 # Daily Dashboard (Readings / Checklists Navigation)
 @app.route('/dashboard/daily')
 @login_required
