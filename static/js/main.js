@@ -101,4 +101,49 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
   }
+
+  // 4. Telemetry Forms Auto-Save Drafts
+  const telemetryForms = [
+    { id: 'power-readings-form', key: 'draft_power_readings' },
+    { id: 'water-readings-form', key: 'draft_water_readings' }
+  ];
+
+  telemetryForms.forEach(config => {
+    const form = document.getElementById(config.id);
+    if (!form) return;
+
+    const storageKey = config.key;
+
+    // Load draft values and restore inputs if drafts exist
+    try {
+      const draft = JSON.parse(localStorage.getItem(storageKey));
+      if (draft) {
+        Object.keys(draft).forEach(name => {
+          const input = form.querySelector(`[name="${name}"]`);
+          if (input && draft[name] !== undefined) {
+            input.value = draft[name];
+          }
+        });
+      }
+    } catch (e) {
+      console.error('Failed to load telemetry drafts:', e);
+    }
+
+    // Save draft on input
+    form.addEventListener('input', () => {
+      const formData = {};
+      const inputs = form.querySelectorAll('input.table-input');
+      inputs.forEach(input => {
+        if (input.name) {
+          formData[input.name] = input.value;
+        }
+      });
+      localStorage.setItem(storageKey, JSON.stringify(formData));
+    });
+
+    // Clear draft on submit
+    form.addEventListener('submit', () => {
+      localStorage.removeItem(storageKey);
+    });
+  });
 });
