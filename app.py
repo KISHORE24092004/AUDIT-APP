@@ -321,13 +321,13 @@ def power_readings():
         data = {f: request.form.get(f, '').strip() for f in fields}
         if set_readings_data('power', user, data):
             flash("Power House readings saved successfully!", "success")
+            return redirect(url_for('power_readings'))
         else:
             flash("Failed to save readings to database.", "danger")
-        return redirect(url_for('power_readings'))
+            return render_template('power.html', user=user, data=data)
 
-    # Load existing values
-    data = get_readings_data('power', user)
-    return render_template('power.html', user=user, data=data)
+    # Render with empty data so fields are cleared by default
+    return render_template('power.html', user=user, data={})
 
 # Water Valve 1-16 Table Form
 @app.route('/dashboard/daily/readings/water', methods=['GET', 'POST'])
@@ -343,13 +343,13 @@ def water_readings():
         
         if set_readings_data('water', user, data):
             flash("Water valve readings saved successfully!", "success")
+            return redirect(url_for('water_readings'))
         else:
             flash("Failed to save readings to database.", "danger")
-        return redirect(url_for('water_readings'))
+            return render_template('water.html', user=user, data=data)
 
-    # Load existing values
-    data = get_readings_data('water', user)
-    return render_template('water.html', user=user, data=data)
+    # Render with empty data so fields are cleared by default
+    return render_template('water.html', user=user, data={})
 
 # Export Power House readings to CSV/Excel
 @app.route('/dashboard/daily/readings/power/export')
