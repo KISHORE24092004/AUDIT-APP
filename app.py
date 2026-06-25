@@ -71,6 +71,17 @@ if not MOCK_AUTH:
     
     supabase = create_client(SUPABASE_URL, SUPABASE_ANON_KEY)
 
+# Helper to get a request-specific authenticated Supabase client for the logged-in user
+def get_user_supabase_client():
+    if MOCK_AUTH:
+        return None
+    SUPABASE_URL = os.getenv("SUPABASE_URL")
+    SUPABASE_ANON_KEY = os.getenv("SUPABASE_ANON_KEY")
+    client = create_client(SUPABASE_URL, SUPABASE_ANON_KEY)
+    if 'user' in session and 'access_token' in session['user']:
+        client.postgrest.auth(session['user']['access_token'])
+    return client
+
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
@@ -86,7 +97,8 @@ def get_readings_data(reading_type, user):
         return load_mock_readings(reading_type, user['username'].lower())
     else:
         try:
-            res = supabase.table("readings")\
+            client = get_user_supabase_client()
+            res = client.table("readings")\
                 .select("data")\
                 .eq("user_id", user['id'])\
                 .eq("type", reading_type)\
@@ -104,19 +116,20 @@ def set_readings_data(reading_type, user, data):
         return True
     else:
         try:
+            client = get_user_supabase_client()
             # Check if record already exists to update
-            res = supabase.table("readings")\
+            res = client.table("readings")\
                 .select("id")\
                 .eq("user_id", user['id'])\
                 .eq("type", reading_type)\
                 .execute()
             if res.data:
                 record_id = res.data[0]['id']
-                supabase.table("readings").update({
+                client.table("readings").update({
                     "data": data
                 }).eq("id", record_id).execute()
             else:
-                supabase.table("readings").insert({
+                client.table("readings").insert({
                     "user_id": user['id'],
                     "type": reading_type,
                     "data": data
