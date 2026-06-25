@@ -171,10 +171,13 @@
       </div>
 
       <!-- Action buttons -->
-      <div class="readings-actions">
+      <div class="readings-actions" style="display: flex; gap: 16px; justify-content: flex-end;">
         <button type="submit" class="btn btn-save">
           <i class="fa-solid fa-cloud-arrow-up"></i> Save Readings
         </button>
+        <a href="{{ url_for('export_power') }}" class="btn btn-save" style="background-color: #10b981; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 8px;">
+          <i class="fa-solid fa-file-excel"></i> Download Excel
+        </a>
       </div>
 
     </div>

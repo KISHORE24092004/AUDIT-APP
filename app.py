@@ -331,6 +331,73 @@ def water_readings():
     data = get_readings_data('water', user)
     return render_template('water.html', user=user, data=data)
 
+# Export Power House readings to CSV/Excel
+@app.route('/dashboard/daily/readings/power/export')
+@login_required
+def export_power():
+    import csv
+    import io
+    from flask import Response
+    
+    user = session['user']
+    data = get_readings_data('power', user)
+    
+    output = io.StringIO()
+    writer = csv.writer(output)
+    
+    # Write CSV Header
+    writer.writerow(['Power House', 'Parameter', 'Value (kW)', 'Power Factor (PF)'])
+    
+    # Power House 1 rows
+    writer.writerow(['Power House 1', 'Solar 75 KW', data.get('ph1_solar_75', ''), data.get('ph1_solar_75_pf', '')])
+    writer.writerow(['Power House 1', 'Solar 33 KW', data.get('ph1_solar_33', ''), data.get('ph1_solar_33_pf', '')])
+    writer.writerow(['Power House 1', 'Power Line IMPORT', data.get('ph1_line_import', ''), data.get('ph1_line_import_pf', '')])
+    writer.writerow(['Power House 1', 'Power Line EXPORT', data.get('ph1_line_export', ''), data.get('ph1_line_export_pf', '')])
+    writer.writerow(['Power House 1', 'Welding Line IMPORT', data.get('ph1_weld_import', ''), data.get('ph1_weld_import_pf', '')])
+    writer.writerow(['Power House 1', 'Welding Line EXPORT', data.get('ph1_weld_export', ''), data.get('ph1_weld_export_pf', '')])
+    
+    # Power House 2 rows
+    writer.writerow(['Power House 2', 'Solar 90 KW', data.get('ph2_solar_90', ''), data.get('ph2_solar_90_pf', '')])
+    writer.writerow(['Power House 2', 'Power Line IMPORT', data.get('ph2_line_import', ''), data.get('ph2_line_import_pf', '')])
+    writer.writerow(['Power House 2', 'Power Line EXPORT', data.get('ph2_line_export', ''), data.get('ph2_line_export_pf', '')])
+    writer.writerow(['Power House 2', 'Welding Line IMPORT', data.get('ph2_weld_import', ''), data.get('ph2_weld_import_pf', '')])
+    writer.writerow(['Power House 2', 'Welding Line EXPORT', data.get('ph2_weld_export', ''), data.get('ph2_weld_export_pf', '')])
+    
+    output.seek(0)
+    return Response(
+        output.getvalue(),
+        mimetype="text/csv",
+        headers={"Content-disposition": "attachment; filename=power_readings.csv"}
+    )
+
+# Export Water Valve readings to CSV/Excel
+@app.route('/dashboard/daily/readings/water/export')
+@login_required
+def export_water():
+    import csv
+    import io
+    from flask import Response
+    
+    user = session['user']
+    data = get_readings_data('water', user)
+    
+    output = io.StringIO()
+    writer = csv.writer(output)
+    
+    # Write CSV Header
+    writer.writerow(['Valve Name', 'Flow Reading (m³/h)'])
+    
+    # Valves 1 to 16
+    for i in range(1, 17):
+        writer.writerow([f"VALVE {i}", data.get(f"valve_{i}", '')])
+        
+    output.seek(0)
+    return Response(
+        output.getvalue(),
+        mimetype="text/csv",
+        headers={"Content-disposition": "attachment; filename=water_readings.csv"}
+    )
+
 @app.route('/logout')
 def logout():
     session.pop('user', None)
