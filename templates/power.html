@@ -12,6 +12,12 @@
     </div>
     
     <div style="display: flex; align-items: center; gap: 16px;">
+      <!-- Live Clock -->
+      <div class="live-clock">
+        <i class="fa-solid fa-clock" style="color: var(--color-info);"></i>
+        <span id="current-time"></span>
+      </div>
+
       <div class="user-badge">
         <div class="user-avatar">
           {{ (user.username if user.username else user.email.split('@')[0])[0].upper() }}

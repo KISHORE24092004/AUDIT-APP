@@ -167,4 +167,25 @@ document.addEventListener('DOMContentLoaded', () => {
       localStorage.removeItem(storageKey);
     });
   });
+
+  // 5. Live Clock Update Routine
+  const timeEl = document.getElementById('current-time');
+  if (timeEl) {
+    const updateClock = () => {
+      const now = new Date();
+      const options = {
+        weekday: 'short',
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: true
+      };
+      timeEl.textContent = now.toLocaleString('en-US', options);
+    };
+    updateClock();
+    setInterval(updateClock, 1000);
+  }
 });

@@ -730,3 +730,23 @@ h1 {
   width: fit-content;
 }
 
+/* Live Clock Badge */
+.live-clock {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.03);
+  padding: 8px 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-card);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+@media (max-width: 600px) {
+  .live-clock {
+    display: none; /* Hide clock on smaller mobile screens to avoid crowding header */
+  }
+}
