@@ -500,8 +500,24 @@ def export_power():
     try:
         wb = openpyxl.load_workbook(template_path)
         ws = wb['power_readings']
+        
+        # Clear pre-existing sample values from the template to only show actual database readings
+        # Power House 1
+        for r in range(4, 19):
+            for c in range(2, 14):
+                ws.cell(row=r, column=c).value = None
+        for r in range(21, 36):
+            for c in range(2, 14):
+                ws.cell(row=r, column=c).value = None
+        # Power House 2
+        for r in range(39, 54):
+            for c in range(2, 10):
+                ws.cell(row=r, column=c).value = None
+        for r in range(56, 71):
+            for c in range(2, 10):
+                ws.cell(row=r, column=c).value = None
     except Exception as e:
-        app.logger.error(f"Error loading Excel template: {str(e)}")
+        app.logger.error(f"Error loading/clearing Excel template: {str(e)}")
         return f"Error loading Excel template: {str(e)}", 500
         
     # Get all historical readings
