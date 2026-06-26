@@ -621,75 +621,92 @@ def export_water():
     import io
     import openpyxl
     from flask import send_file
-    from openpyxl.styles import Font, Alignment, PatternFill
     
+    # Get the current month and year in YYYY-MM format based on IST
+    current_month_prefix = get_current_ist_date()[:7] # "YYYY-MM"
+    
+    # Load template
+    template_path = os.path.join(os.path.dirname(__file__), "water_readings.xlsx")
+    if not os.path.exists(template_path):
+        return "Template water_readings.xlsx not found on server.", 404
+        
+    try:
+        wb = openpyxl.load_workbook(template_path)
+        ws = wb['water_readings']
+        
+        # Clear data rows
+        # Valves 1 to 16
+        for r in range(4, 19):
+            for c in range(2, 18):
+                ws.cell(row=r, column=c).value = None
+        for r in range(21, 36):
+            for c in range(2, 18):
+                ws.cell(row=r, column=c).value = None
+    except Exception as e:
+        app.logger.error(f"Error loading/clearing Excel template: {str(e)}")
+        return f"Error loading Excel template: {str(e)}", 500
+        
+    # Get all historical readings
     history = get_all_historical_readings('water')
     
-    wb = openpyxl.Workbook()
-    ws = wb.active
-    ws.title = "water_readings"
-    
-    # Setup styles
-    title_font = Font(name="Calibri", size=14, bold=True, color="FFFFFF")
-    header_font = Font(name="Calibri", size=11, bold=True, color="FFFFFF")
-    cell_font = Font(name="Calibri", size=11)
-    
-    dark_fill = PatternFill(start_color="1F2937", end_color="1F2937", fill_type="solid") # Dark gray
-    accent_fill = PatternFill(start_color="3B82F6", end_color="3B82F6", fill_type="solid") # Blue accent
-    
-    # Set up Title Row
-    ws.merge_cells("A1:C1")
-    title_cell = ws["A1"]
-    title_cell.value = "BARANI HYDRAULICS INDIA PRIVATE LIMITED"
-    title_cell.font = title_font
-    title_cell.fill = accent_fill
-    title_cell.alignment = Alignment(horizontal="center", vertical="center")
-    ws.row_dimensions[1].height = 40
-    
-    # Set up Headers
-    headers = ['Date', 'Valve Name', 'Flow Reading (m³/h)']
-    for col_idx, header in enumerate(headers, 1):
-        cell = ws.cell(row=2, column=col_idx, value=header)
-        cell.font = header_font
-        cell.fill = dark_fill
-        cell.alignment = Alignment(horizontal="center", vertical="center")
-    ws.row_dimensions[2].height = 25
-    
-    # Fill Data
-    row_idx = 3
+    # Helper to safely parse numbers
+    def to_num(val):
+        if val == '' or val is None:
+            return None
+        try:
+            if '.' in val:
+                return float(val)
+            return int(val)
+        except ValueError:
+            return val
+            
+    # Populate the table cells
     for entry in history:
-        date_str = entry['date']
+        date_str = entry['date'] # "YYYY-MM-DD"
+        # Only populate readings for the current month
+        if not date_str.startswith(current_month_prefix):
+            continue
+            
         data = entry['data']
+        try:
+            # Parse day of month D
+            day_part = date_str.split('-')[2]
+            D = int(day_part)
+        except Exception:
+            continue
+            
+        # Determine row number based on layout mapping formulas
+        # S.NO 1 to 15 is row D + 3
+        # S.NO 16 to 30 is row D + 5
+        if 1 <= D <= 15:
+            row_idx = D + 3
+        elif 16 <= D <= 30:
+            row_idx = D + 5
+        else:
+            row_idx = None
+            
+        # Write Valves 1 to 16 cells (columns B to Q, indices 2 to 17)
+        if row_idx:
+            for i in range(1, 17):
+                ws.cell(row=row_idx, column=i+1, value=to_num(data.get(f'valve_{i}')))
+                
+    # Fill in the Month/Year header cells (merged P1:Q1, column P is 16)
+    try:
+        parts = current_month_prefix.split('-')
+        month_year_str = f"{parts[1]}/{parts[0]}"
+    except Exception:
+        month_year_str = ""
         
-        # Valves 1 to 16
-        for i in range(1, 17):
-            ws.cell(row=row_idx, column=1, value=date_str).font = cell_font
-            ws.cell(row=row_idx, column=2, value=f"VALVE {i}").font = cell_font
-            
-            # Parse value
-            val = data.get(f"valve_{i}", '')
-            try:
-                val = float(val) if '.' in val else int(val)
-            except ValueError:
-                pass
-            ws.cell(row=row_idx, column=3, value=val).font = cell_font
-            
-            # Alignment
-            ws.cell(row=row_idx, column=1).alignment = Alignment(horizontal="center")
-            ws.cell(row=row_idx, column=2).alignment = Alignment(horizontal="left")
-            ws.cell(row=row_idx, column=3).alignment = Alignment(horizontal="right")
-            
-            row_idx += 1
-            
-        # Add an empty row for separation between dates
-        row_idx += 1
-        
-    # Auto-adjust column widths
-    for col in ws.columns:
-        max_len = max(len(str(cell.value or '')) for cell in col)
-        col_letter = openpyxl.utils.get_column_letter(col[0].column)
-        ws.column_dimensions[col_letter].width = max(max_len + 3, 12)
-        
+    p1_cell = ws.cell(row=1, column=16, value=f"DOC NO: R/MAI/EB\nMONTH/YEAR: {month_year_str}")
+    from openpyxl.styles import Alignment
+    current_align = p1_cell.alignment
+    p1_cell.alignment = Alignment(
+        horizontal=current_align.horizontal if current_align else 'left',
+        vertical=current_align.vertical if current_align else 'center',
+        wrap_text=True
+    )
+    
+    # Save the file to memory
     file_stream = io.BytesIO()
     wb.save(file_stream)
     file_stream.seek(0)

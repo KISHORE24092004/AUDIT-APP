@@ -7,10 +7,10 @@
   <!-- Header -->
   <header class="dashboard-header">
     <div>
-      <h1>Portal Dashboard</h1>
+      <h1>Maintenance Dashboard</h1>
       <p class="subtitle" style="margin-bottom: 0;">Manage your secure workspace and session details.</p>
     </div>
-    
+
     <div style="display: flex; align-items: center; gap: 16px;">
       <div class="user-badge">
         <div class="user-avatar">
@@ -18,7 +18,7 @@
         </div>
         <span class="user-email">@{{ user.username if user.username else user.email.split('@')[0] }}</span>
       </div>
-      
+
       <a href="{{ url_for('logout') }}" class="btn btn-secondary">
         <i class="fa-solid fa-arrow-right-from-bracket"></i>
         <span>Logout</span>
@@ -59,9 +59,12 @@
   </div>
 
   <!-- Small Session Info Footer -->
-  <div style="margin-top: 60px; border-top: 1px solid var(--border-card); padding-top: 20px; display: flex; justify-content: space-between; font-size: 12px; color: var(--text-muted); width: 100%;">
-    <span>Status: <strong>{% if user.access_token == 'mock-jwt-token' %}MOCK_DEVELOPMENT{% else %}SECURE_SESSION{% endif %}</strong></span>
-    <span>Provider: <strong>{% if user.access_token == 'mock-jwt-token' %}LOCAL_MOCK_AUTH{% else %}SUPABASE_AUTH{% endif %}</strong></span>
+  <div
+    style="margin-top: 60px; border-top: 1px solid var(--border-card); padding-top: 20px; display: flex; justify-content: space-between; font-size: 12px; color: var(--text-muted); width: 100%;">
+    <span>Status: <strong>{% if user.access_token == 'mock-jwt-token' %}MOCK_DEVELOPMENT{% else %}SECURE_SESSION{% endif
+        %}</strong></span>
+    <span>Provider: <strong>{% if user.access_token == 'mock-jwt-token' %}LOCAL_MOCK_AUTH{% else %}SUPABASE_AUTH{% endif
+        %}</strong></span>
   </div>
 </div>
 {% endblock %}
