@@ -27,7 +27,25 @@ def load_mock_users():
         return {}
     try:
         with open(USERS_FILE, 'r') as f:
-            return json.load(f)
+            raw_users = json.load(f)
+        
+        needs_migration = False
+        migrated_users = {}
+        for username, data in raw_users.items():
+            if isinstance(data, str):
+                needs_migration = True
+                role = "admin" if username.lower() == "admin" else "user"
+                migrated_users[username] = {
+                    "password": data,
+                    "role": role
+                }
+            else:
+                migrated_users[username] = data
+                
+        if needs_migration:
+            save_mock_users(migrated_users)
+            
+        return migrated_users
     except Exception:
         return {}
 
@@ -141,6 +159,18 @@ def login_required(f):
         if 'user' not in session:
             flash("Please sign in to access this page.", "warning")
             return redirect(url_for('login'))
+        return f(*args, **kwargs)
+    return decorated_function
+
+def admin_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user' not in session:
+            flash("Please sign in to access this page.", "warning")
+            return redirect(url_for('login'))
+        if session['user'].get('role') != 'admin':
+            flash("Access denied: Administrator privileges required.", "warning")
+            return redirect(url_for('dashboard'))
         return f(*args, **kwargs)
     return decorated_function
 
@@ -271,11 +301,12 @@ def login():
         if MOCK_AUTH:
             users = load_mock_users()
             normalized = username.lower()
-            if normalized in users and users[normalized] == password:
+            if normalized in users and users[normalized]["password"] == password:
                 session['user'] = {
                     'id': f"mock-uuid-{normalized}",
                     'email': f"{normalized}@local.portal",
                     'username': username,
+                    'role': users[normalized].get("role", "user"),
                     'access_token': "mock-jwt-token"
                 }
                 flash("Welcome back (Developer Mode)!", "success")
@@ -293,11 +324,17 @@ def login():
                     "password": password
                 })
                 
+                # Retrieve role from user metadata with fallback for admin
+                role = response.user.user_metadata.get('role', 'user') if response.user.user_metadata else 'user'
+                if username.lower() == "admin":
+                    role = "admin"
+                
                 # Store session in Flask secure cookies
                 session['user'] = {
                     'id': response.user.id,
                     'email': response.user.email,
                     'username': username,
+                    'role': role,
                     'access_token': response.session.access_token
                 }
                 flash("Welcome back!", "success")
@@ -316,69 +353,8 @@ def login():
 
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
-    if 'user' in session:
-        return redirect(url_for('dashboard'))
-        
-    if request.method == 'POST':
-        username = request.form.get('username', '').strip()
-        password = request.form.get('password')
-        confirm_password = request.form.get('confirm_password')
-        
-        if not username or not password or not confirm_password:
-            flash("Please fill in all the details.", "danger")
-            return render_template('signup.html', username=username)
-            
-        if password != confirm_password:
-            flash("Passwords do not match. Please try again.", "danger")
-            return render_template('signup.html', username=username)
-            
-        if MOCK_AUTH:
-            users = load_mock_users()
-            normalized = username.lower()
-            if normalized in users:
-                flash("Username is already taken.", "danger")
-            else:
-                users[normalized] = password
-                save_mock_users(users)
-                session['user'] = {
-                    'id': f"mock-uuid-{normalized}",
-                    'email': f"{normalized}@local.portal",
-                    'username': username,
-                    'access_token': "mock-jwt-token"
-                }
-                flash("Sign up successful (Developer Mode)! You are now logged in.", "success")
-                return redirect(url_for('dashboard'))
-        else:
-            try:
-                # Map username to virtual email domain for Supabase
-                email = f"{username.lower()}@local.portal"
-                
-                # Create user in Supabase
-                response = supabase.auth.sign_up({
-                    "email": email,
-                    "password": password
-                })
-                
-                if response.session:
-                    session['user'] = {
-                        'id': response.user.id,
-                        'email': response.user.email,
-                        'username': username,
-                        'access_token': response.session.access_token
-                    }
-                    flash("Sign up successful! You are now logged in.", "success")
-                    return redirect(url_for('dashboard'))
-                else:
-                    flash("Registration successful! You can now log in.", "info")
-                    return redirect(url_for('login'))
-                    
-            except AuthApiError as e:
-                flash(e.message, "danger")
-            except Exception as e:
-                flash("An unexpected error occurred during signup.", "danger")
-                app.logger.error(f"Signup unexpected exception: {str(e)}")
-            
-    return render_template('signup.html')
+    flash("Self-registration is disabled. Please contact an administrator to create your account.", "danger")
+    return redirect(url_for('login'))
 
 # Core Dashboard (Daily / Monthly Navigation)
 @app.route('/dashboard')
@@ -389,7 +365,7 @@ def dashboard():
 
 # Documents Dashboard (Excel/CSV Export List)
 @app.route('/dashboard/documents')
-@login_required
+@admin_required
 def documents():
     user = session['user']
     return render_template('documents.html', user=user)
@@ -483,7 +459,7 @@ def water_readings():
 
 # Export Power House readings to CSV/Excel
 @app.route('/dashboard/daily/readings/power/export')
-@login_required
+@admin_required
 def export_power():
     import io
     import openpyxl
@@ -666,7 +642,7 @@ def export_power():
 
 # Export Water Valve readings to CSV/Excel
 @app.route('/dashboard/daily/readings/water/export')
-@login_required
+@admin_required
 def export_water():
     import io
     import openpyxl
@@ -803,6 +779,149 @@ def export_water():
         as_attachment=True,
         download_name="water_readings.xlsx"
     )
+
+# Admin and User CRUD Management Routes
+def get_admin_supabase_client():
+    if MOCK_AUTH:
+        return None
+    SUPABASE_URL = os.getenv("SUPABASE_URL")
+    SUPABASE_SERVICE_ROLE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
+    if not SUPABASE_URL or not SUPABASE_SERVICE_ROLE_KEY:
+        raise ValueError("Supabase URL and Service Role Key must be set for admin operations.")
+    return create_client(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
+
+@app.route('/admin')
+@admin_required
+def admin_panel():
+    user = session['user']
+    user_list = []
+    
+    if MOCK_AUTH:
+        mock_users = load_mock_users()
+        for uname, udata in mock_users.items():
+            user_list.append({
+                "id": uname,
+                "username": uname,
+                "role": udata.get("role", "user"),
+                "email": f"{uname.lower()}@local.portal"
+            })
+    else:
+        try:
+            admin_client = get_admin_supabase_client()
+            res = admin_client.auth.admin.list_users()
+            raw_users = getattr(res, 'users', res)
+            for u in raw_users:
+                email = u.email or ""
+                uname = email.split('@')[0] if '@' in email else email
+                role = u.user_metadata.get('role', 'user') if u.user_metadata else 'user'
+                user_list.append({
+                    "id": u.id,
+                    "username": uname,
+                    "role": role,
+                    "email": email
+                })
+        except Exception as e:
+            flash(f"Error loading users from Supabase: {str(e)}", "danger")
+            
+    user_list.sort(key=lambda x: (x['role'] != 'admin', x['username']))
+    return render_template('admin.html', user=user, users=user_list)
+
+@app.route('/admin/users/create', methods=['POST'])
+@admin_required
+def admin_create_user():
+    username = request.form.get('username', '').strip()
+    password = request.form.get('password')
+    role = request.form.get('role', 'user').strip()
+    
+    if not username or not password:
+        flash("Username and password are required.", "danger")
+        return redirect(url_for('admin_panel'))
+        
+    normalized = username.lower()
+    
+    if MOCK_AUTH:
+        users = load_mock_users()
+        if normalized in users:
+            flash(f"User '{username}' already exists.", "danger")
+        else:
+            users[normalized] = {
+                "password": password,
+                "role": role
+            }
+            save_mock_users(users)
+            flash(f"User '{username}' created successfully (Developer Mode)!", "success")
+    else:
+        try:
+            admin_client = get_admin_supabase_client()
+            email = f"{normalized}@local.portal"
+            admin_client.auth.admin.create_user({
+                "email": email,
+                "password": password,
+                "email_confirm": True,
+                "user_metadata": {"role": role}
+            })
+            flash(f"User '{username}' created successfully in Supabase!", "success")
+        except Exception as e:
+            flash(f"Error creating user: {str(e)}", "danger")
+            
+    return redirect(url_for('admin_panel'))
+
+@app.route('/admin/users/edit/<user_id>', methods=['POST'])
+@admin_required
+def admin_edit_user(user_id):
+    password = request.form.get('password')
+    role = request.form.get('role', 'user').strip()
+    
+    if MOCK_AUTH:
+        users = load_mock_users()
+        normalized = user_id.lower()
+        if normalized not in users:
+            flash("User not found.", "danger")
+        else:
+            if password:
+                users[normalized]["password"] = password
+            users[normalized]["role"] = role
+            save_mock_users(users)
+            flash("User updated successfully (Developer Mode)!", "success")
+    else:
+        try:
+            admin_client = get_admin_supabase_client()
+            update_data = {"user_metadata": {"role": role}}
+            if password:
+                update_data["password"] = password
+            admin_client.auth.admin.update_user_by_id(user_id, update_data)
+            flash("User updated successfully in Supabase!", "success")
+        except Exception as e:
+            flash(f"Error updating user: {str(e)}", "danger")
+            
+    return redirect(url_for('admin_panel'))
+
+@app.route('/admin/users/delete/<user_id>', methods=['POST'])
+@admin_required
+def admin_delete_user(user_id):
+    if MOCK_AUTH:
+        users = load_mock_users()
+        normalized = user_id.lower()
+        if session['user']['username'].lower() == normalized:
+            flash("You cannot delete your own admin account.", "danger")
+        elif normalized not in users:
+            flash("User not found.", "danger")
+        else:
+            del users[normalized]
+            save_mock_users(users)
+            flash("User deleted successfully (Developer Mode)!", "success")
+    else:
+        try:
+            if session['user']['id'] == user_id:
+                flash("You cannot delete your own admin account.", "danger")
+            else:
+                admin_client = get_admin_supabase_client()
+                admin_client.auth.admin.delete_user(user_id)
+                flash("User deleted successfully from Supabase!", "success")
+        except Exception as e:
+            flash(f"Error deleting user: {str(e)}", "danger")
+            
+    return redirect(url_for('admin_panel'))
 
 @app.route('/logout')
 def logout():

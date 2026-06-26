@@ -1,0 +1,296 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Panel - Portal{% endblock %}
+
+{% block content %}
+<div class="dashboard-layout" style="max-width: 1100px; width: 100%;">
+  <!-- Header -->
+  <header class="dashboard-header">
+    <div>
+      <h1>Admin Control Panel</h1>
+      <p class="subtitle" style="margin-bottom: 0;">Manage user accounts, credentials, and access Excel reports.</p>
+    </div>
+    
+    <div style="display: flex; align-items: center; gap: 16px;">
+      <div class="user-badge">
+        <div class="user-avatar" style="background: linear-gradient(135deg, #f59e0b, #ef4444);">
+          {{ (user.username if user.username else user.email.split('@')[0])[0].upper() }}
+        </div>
+        <span class="user-email">@{{ user.username }}</span>
+      </div>
+      
+      <a href="{{ url_for('logout') }}" class="btn btn-secondary">
+        <i class="fa-solid fa-arrow-right-from-bracket"></i>
+        <span>Logout</span>
+      </a>
+    </div>
+  </header>
+
+  <!-- Breadcrumbs -->
+  <div class="breadcrumbs">
+    <a href="{{ url_for('dashboard') }}" class="breadcrumb-item"><i class="fa-solid fa-house"></i> Dashboard</a>
+    <span class="breadcrumb-separator"><i class="fa-solid fa-chevron-right"></i></span>
+    <span class="breadcrumb-active"><i class="fa-solid fa-user-shield"></i> Admin Panel</span>
+  </div>
+
+  <div class="readings-grid">
+    <!-- Left Column: User Management -->
+    <div class="table-wrapper">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
+        <h2 class="table-wrapper-title" style="margin: 0;"><i class="fa-solid fa-users"></i> User Accounts</h2>
+        <button class="btn" id="btn-open-create" style="padding: 8px 14px; font-size: 13px; background-color: var(--color-primary); height: auto; width: auto; min-width: unset;">
+          <i class="fa-solid fa-user-plus"></i> Add User
+        </button>
+      </div>
+
+      <table class="readings-table">
+        <thead>
+          <tr>
+            <th>Username</th>
+            <th>Role</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for u in users %}
+          <tr>
+            <td style="font-weight: 500;">
+              <i class="fa-solid fa-user" style="color: var(--text-muted); margin-right: 8px;"></i>
+              {{ u.username }}
+            </td>
+            <td>
+              {% if u.role == 'admin' %}
+              <span class="locked-badge" style="background-color: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3); font-size: 11px; padding: 2px 8px; border-radius: 12px; width: fit-content;">
+                <i class="fa-solid fa-shield-halved"></i> Admin
+              </span>
+              {% else %}
+              <span class="locked-badge" style="background-color: rgba(99, 102, 241, 0.15); color: #818cf8; border: 1px solid rgba(99, 102, 241, 0.3); font-size: 11px; padding: 2px 8px; border-radius: 12px; width: fit-content;">
+                <i class="fa-solid fa-user-gear"></i> User
+              </span>
+              {% endif %}
+            </td>
+            <td>
+              <div style="display: flex; gap: 8px;">
+                <!-- Edit button -->
+                <button 
+                  class="btn btn-secondary btn-edit-user" 
+                  data-id="{{ u.id }}" 
+                  data-username="{{ u.username }}" 
+                  data-role="{{ u.role }}"
+                  style="padding: 4px 10px; font-size: 12px; height: auto; width: auto;"
+                >
+                  <i class="fa-solid fa-key"></i> Edit
+                </button>
+                
+                <!-- Delete form -->
+                {% if u.username.lower() != user.username.lower() %}
+                <form action="{{ url_for('admin_delete_user', user_id=u.id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete user \'{{ u.username }}\'?');" style="margin: 0;">
+                  <button type="submit" class="btn btn-secondary" style="padding: 4px 10px; font-size: 12px; height: auto; background-color: rgba(239, 68, 68, 0.1); color: var(--color-danger); border-color: rgba(239, 68, 68, 0.2); width: auto;">
+                    <i class="fa-solid fa-trash-can"></i> Delete
+                  </button>
+                </form>
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Right Column: Excel Reports Downloads -->
+    <div class="table-wrapper" style="display: flex; flex-direction: column; gap: 20px;">
+      <h2 class="table-wrapper-title" style="margin-bottom: 0;"><i class="fa-solid fa-file-excel"></i> Export Reports</h2>
+      
+      <!-- Power Card -->
+      <a href="{{ url_for('export_power') }}" class="nav-card" style="text-decoration: none; padding: 20px; align-items: flex-start; text-align: left; height: auto; width: 100%;">
+        <div class="nav-card-icon" style="color: var(--color-success); margin: 0 0 12px 0;">
+          <i class="fa-solid fa-file-excel"></i>
+        </div>
+        <span class="nav-card-title" style="font-size: 16px; margin: 0; font-weight: 600;">Power House Excel</span>
+        <p style="font-size: 11px; color: var(--text-muted); margin-top: 4px; line-height: 1.4;">Download solar & line readings spreadsheet template.</p>
+      </a>
+
+      <!-- Water Card -->
+      <a href="{{ url_for('export_water') }}" class="nav-card" style="text-decoration: none; padding: 20px; align-items: flex-start; text-align: left; height: auto; width: 100%;">
+        <div class="nav-card-icon" style="color: var(--color-info); margin: 0 0 12px 0;">
+          <i class="fa-solid fa-file-excel"></i>
+        </div>
+        <span class="nav-card-title" style="font-size: 16px; margin: 0; font-weight: 600;">Water Valves Excel</span>
+        <p style="font-size: 11px; color: var(--text-muted); margin-top: 4px; line-height: 1.4;">Download flow log spreadsheet template (Valves 1-16).</p>
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Create User -->
+<div id="modal-create" class="modal-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(8px);">
+  <div class="glass-card" style="max-width: 400px; padding: 30px; animation: none;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+      <h2 style="font-size: 18px; color: var(--text-primary); margin: 0;"><i class="fa-solid fa-user-plus"></i> Add Account</h2>
+      <button id="btn-close-create" style="background: none; border: none; color: var(--text-muted); font-size: 20px; cursor: pointer; line-height: 1;">&times;</button>
+    </div>
+    
+    <form action="{{ url_for('admin_create_user') }}" method="POST" autocomplete="off">
+      <div class="form-group" style="margin-bottom: 16px;">
+        <label for="create-username" style="display: block; font-size: 12px; color: var(--text-secondary); margin-bottom: 6px;">Username</label>
+        <div class="input-container">
+          <i class="fa-solid fa-user input-icon"></i>
+          <input type="text" name="username" id="create-username" class="form-control" placeholder="Enter username" required style="width: 100%;">
+        </div>
+      </div>
+      
+      <div class="form-group" style="margin-bottom: 16px;">
+        <label for="create-password" style="display: block; font-size: 12px; color: var(--text-secondary); margin-bottom: 6px;">Password</label>
+        <div class="input-container">
+          <i class="fa-solid fa-lock input-icon"></i>
+          <input type="password" name="password" id="create-password" class="form-control" placeholder="Enter password" required style="width: 100%;">
+          <i class="fa-solid fa-eye password-toggle" data-target="create-password" style="cursor: pointer;"></i>
+        </div>
+      </div>
+
+      <div class="form-group" style="margin-bottom: 24px;">
+        <label for="create-role" style="display: block; font-size: 12px; color: var(--text-secondary); margin-bottom: 6px;">Role</label>
+        <div class="input-container">
+          <i class="fa-solid fa-user-shield input-icon" style="color: var(--text-muted); position: absolute; left: 14px; top: 50%; transform: translateY(-50%);"></i>
+          <select name="role" id="create-role" class="form-control" style="padding-left: 40px; background-color: rgba(10, 10, 20, 0.7); color: var(--text-primary); border: 1px solid var(--border-card); border-radius: var(--radius-md); width: 100%; height: 45px; cursor: pointer; outline: none;">
+            <option value="user" selected>User (Standard Operator)</option>
+            <option value="admin">Admin (Full Control)</option>
+          </select>
+        </div>
+      </div>
+      
+      <button type="submit" class="btn" style="background-color: var(--color-primary); width: 100%; height: 45px;">
+        <span>Create Account</span>
+        <i class="fa-solid fa-plus"></i>
+      </button>
+    </form>
+  </div>
+</div>
+
+<!-- Modal: Edit User -->
+<div id="modal-edit" class="modal-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(8px);">
+  <div class="glass-card" style="max-width: 400px; padding: 30px; animation: none;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+      <h2 style="font-size: 18px; color: var(--text-primary); margin: 0;"><i class="fa-solid fa-key"></i> Edit Account</h2>
+      <button id="btn-close-edit" style="background: none; border: none; color: var(--text-muted); font-size: 20px; cursor: pointer; line-height: 1;">&times;</button>
+    </div>
+    
+    <form id="form-edit-user" action="" method="POST" autocomplete="off">
+      <div class="form-group" style="margin-bottom: 16px;">
+        <label style="display: block; font-size: 12px; color: var(--text-secondary); margin-bottom: 6px;">Username</label>
+        <div class="input-container">
+          <i class="fa-solid fa-user input-icon" style="color: var(--text-muted);"></i>
+          <input type="text" id="edit-username-display" class="form-control" disabled style="background-color: rgba(255,255,255,0.05); color: var(--text-secondary); width: 100%;">
+        </div>
+      </div>
+      
+      <div class="form-group" style="margin-bottom: 16px;">
+        <label for="edit-password" style="display: block; font-size: 12px; color: var(--text-secondary); margin-bottom: 6px;">New Password (leave blank to keep current)</label>
+        <div class="input-container">
+          <i class="fa-solid fa-lock input-icon"></i>
+          <input type="password" name="password" id="edit-password" class="form-control" placeholder="Enter new password" style="width: 100%;">
+          <i class="fa-solid fa-eye password-toggle" data-target="edit-password" style="cursor: pointer;"></i>
+        </div>
+      </div>
+
+      <div class="form-group" style="margin-bottom: 24px;">
+        <label for="edit-role" style="display: block; font-size: 12px; color: var(--text-secondary); margin-bottom: 6px;">Role</label>
+        <div class="input-container">
+          <i class="fa-solid fa-user-shield input-icon" style="color: var(--text-muted); position: absolute; left: 14px; top: 50%; transform: translateY(-50%);"></i>
+          <select name="role" id="edit-role" class="form-control" style="padding-left: 40px; background-color: rgba(10, 10, 20, 0.7); color: var(--text-primary); border: 1px solid var(--border-card); border-radius: var(--radius-md); width: 100%; height: 45px; cursor: pointer; outline: none;">
+            <option value="user">User (Standard Operator)</option>
+            <option value="admin">Admin (Full Control)</option>
+          </select>
+        </div>
+      </div>
+      
+      <button type="submit" class="btn" style="background-color: var(--color-primary); width: 100%; height: 45px;">
+        <span>Save Changes</span>
+        <i class="fa-solid fa-circle-check"></i>
+      </button>
+    </form>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Modal controls
+    const modalCreate = document.getElementById('modal-create');
+    const modalEdit = document.getElementById('modal-edit');
+    
+    const btnOpenCreate = document.getElementById('btn-open-create');
+    const btnCloseCreate = document.getElementById('btn-close-create');
+    const btnCloseEdit = document.getElementById('btn-close-edit');
+    
+    // Open create user modal
+    btnOpenCreate.addEventListener('click', function() {
+      modalCreate.style.display = 'flex';
+    });
+    
+    // Close create user modal
+    btnCloseCreate.addEventListener('click', function() {
+      modalCreate.style.display = 'none';
+    });
+    
+    // Close edit user modal
+    btnCloseEdit.addEventListener('click', function() {
+      modalEdit.style.display = 'none';
+    });
+    
+    // Handle opening edit user modal
+    const editButtons = document.querySelectorAll('.btn-edit-user');
+    const formEdit = document.getElementById('form-edit-user');
+    const editUsernameDisplay = document.getElementById('edit-username-display');
+    const editRole = document.getElementById('edit-role');
+    const editPasswordInput = document.getElementById('edit-password');
+    
+    editButtons.forEach(btn => {
+      btn.addEventListener('click', function() {
+        const userId = this.getAttribute('data-id');
+        const username = this.getAttribute('data-username');
+        const role = this.getAttribute('data-role');
+        
+        // Configure edit form target URL
+        formEdit.action = '/admin/users/edit/' + encodeURIComponent(userId);
+        
+        // Populating modal fields
+        editUsernameDisplay.value = username;
+        editRole.value = role;
+        editPasswordInput.value = ''; // Reset password input
+        
+        // Show modal
+        modalEdit.style.display = 'flex';
+      });
+    });
+    
+    // Close modal if clicked outside
+    window.addEventListener('click', function(e) {
+      if (e.target === modalCreate) {
+        modalCreate.style.display = 'none';
+      }
+      if (e.target === modalEdit) {
+        modalEdit.style.display = 'none';
+      }
+    });
+
+    // Password visibility toggles
+    const toggles = document.querySelectorAll('.password-toggle');
+    toggles.forEach(toggle => {
+      toggle.addEventListener('click', function() {
+        const targetId = this.getAttribute('data-target');
+        const input = document.getElementById(targetId);
+        if (input.type === 'password') {
+          input.type = 'text';
+          this.classList.remove('fa-eye');
+          this.classList.add('fa-eye-slash');
+        } else {
+          input.type = 'password';
+          this.classList.remove('fa-eye-slash');
+          this.classList.add('fa-eye');
+        }
+      });
+    });
+  });
+</script>
+{% endblock %}
