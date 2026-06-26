@@ -416,6 +416,12 @@ def power_readings():
     today_date = get_current_ist_date()
     
     if request.method == 'POST':
+        # Check if already locked
+        existing_data = get_readings_data('power', today_date)
+        if existing_data:
+            flash("Readings for today are already locked and cannot be modified.", "warning")
+            return redirect(url_for('power_readings'))
+
         # Collect form variables matching the Power House layout with individual PF fields
         fields = [
             'ph1_solar_75', 'ph1_solar_75_pf',
@@ -436,11 +442,12 @@ def power_readings():
             return redirect(url_for('power_readings'))
         else:
             flash("Failed to save readings to database.", "danger")
-            return render_template('power.html', user=user, data=data, today_date=today_date)
+            return render_template('power.html', user=user, data=data, today_date=today_date, locked=False)
 
     # Fetch today's readings if already entered by any user
     data = get_readings_data('power', today_date)
-    return render_template('power.html', user=user, data=data, today_date=today_date)
+    locked = True if data else False
+    return render_template('power.html', user=user, data=data, today_date=today_date, locked=locked)
 
 # Water Valve 1-16 Table Form
 @app.route('/dashboard/daily/readings/water', methods=['GET', 'POST'])
@@ -450,6 +457,12 @@ def water_readings():
     today_date = get_current_ist_date()
     
     if request.method == 'POST':
+        # Check if already locked
+        existing_data = get_readings_data('water', today_date)
+        if existing_data:
+            flash("Readings for today are already locked and cannot be modified.", "warning")
+            return redirect(url_for('water_readings'))
+
         # Collect 16 valve values
         data = {}
         for i in range(1, 17):
@@ -461,11 +474,12 @@ def water_readings():
             return redirect(url_for('water_readings'))
         else:
             flash("Failed to save readings to database.", "danger")
-            return render_template('water.html', user=user, data=data, today_date=today_date)
+            return render_template('water.html', user=user, data=data, today_date=today_date, locked=False)
 
     # Fetch today's readings if already entered by any user
     data = get_readings_data('water', today_date)
-    return render_template('water.html', user=user, data=data, today_date=today_date)
+    locked = True if data else False
+    return render_template('water.html', user=user, data=data, today_date=today_date, locked=locked)
 
 # Export Power House readings to CSV/Excel
 @app.route('/dashboard/daily/readings/power/export')

@@ -37,7 +37,7 @@
     <span class="breadcrumb-active">Water</span>
   </div>
 
-  <form id="water-readings-form" action="{{ url_for('water_readings') }}" method="POST" data-date="{{ today_date }}">
+  <form id="water-readings-form" action="{{ url_for('water_readings') }}" method="POST" data-date="{{ today_date }}" {% if locked %}data-locked="true"{% endif %}>
     <div class="readings-container">
       <div class="readings-grid">
         
@@ -103,9 +103,15 @@
 
       <!-- Action buttons -->
       <div class="readings-actions">
-        <button type="submit" class="btn btn-save" style="background-color: #3b82f6;">
-          <i class="fa-solid fa-cloud-arrow-up"></i> Save Readings
-        </button>
+        {% if locked %}
+          <div class="locked-badge">
+            <i class="fa-solid fa-lock"></i> Readings Saved & Locked for Today
+          </div>
+        {% else %}
+          <button type="submit" class="btn btn-save" style="background-color: #3b82f6;">
+            <i class="fa-solid fa-cloud-arrow-up"></i> Save Readings
+          </button>
+        {% endif %}
       </div>
 
     </div>

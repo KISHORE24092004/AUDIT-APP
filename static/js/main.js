@@ -115,6 +115,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const todayDate = form.getAttribute('data-date') || '';
     const storageKey = config.key + '_' + todayDate;
 
+    // Check if the form is locked (saved for today)
+    const isLocked = form.getAttribute('data-locked') === 'true';
+    if (isLocked) {
+      form.querySelectorAll('input').forEach(input => {
+        input.disabled = true;
+      });
+    }
+
     // Clean up older keys for this form
     try {
       for (let i = localStorage.length - 1; i >= 0; i--) {
