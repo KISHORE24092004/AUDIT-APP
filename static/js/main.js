@@ -112,7 +112,20 @@ document.addEventListener('DOMContentLoaded', () => {
     const form = document.getElementById(config.id);
     if (!form) return;
 
-    const storageKey = config.key;
+    const todayDate = form.getAttribute('data-date') || '';
+    const storageKey = config.key + '_' + todayDate;
+
+    // Clean up older keys for this form
+    try {
+      for (let i = localStorage.length - 1; i >= 0; i--) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith(config.key) && key !== storageKey) {
+          localStorage.removeItem(key);
+        }
+      }
+    } catch (e) {
+      console.error('Failed to clean up old telemetry drafts:', e);
+    }
 
     // Load draft values and restore inputs if drafts exist
     try {

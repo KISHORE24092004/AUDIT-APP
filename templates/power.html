@@ -37,7 +37,7 @@
     <span class="breadcrumb-active">Power</span>
   </div>
 
-  <form id="power-readings-form" action="{{ url_for('power_readings') }}" method="POST">
+  <form id="power-readings-form" action="{{ url_for('power_readings') }}" method="POST" data-date="{{ today_date }}">
     <div class="readings-container">
       <div class="readings-grid">
         
