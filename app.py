@@ -3,7 +3,7 @@ import json
 from datetime import datetime, timedelta
 from functools import wraps
 from dotenv import load_dotenv
-from flask import Flask, render_template, request, redirect, url_for, session, flash
+from flask import Flask, render_template, request, redirect, url_for, session, flash, send_file
 from supabase import create_client, Client
 from gotrue.errors import AuthApiError
 
@@ -485,79 +485,204 @@ def water_readings():
 @app.route('/dashboard/daily/readings/power/export')
 @login_required
 def export_power():
-    import csv
     import io
-    from flask import Response
+    import openpyxl
+    from flask import send_file
     
+    # Get the current month and year in YYYY-MM format based on IST
+    current_month_prefix = get_current_ist_date()[:7] # "YYYY-MM"
+    
+    # Load template
+    template_path = os.path.join(os.path.dirname(__file__), "power_readings.xlsx")
+    if not os.path.exists(template_path):
+        return "Template power_readings.xlsx not found on server.", 404
+        
+    try:
+        wb = openpyxl.load_workbook(template_path)
+        ws = wb['power_readings']
+    except Exception as e:
+        app.logger.error(f"Error loading Excel template: {str(e)}")
+        return f"Error loading Excel template: {str(e)}", 500
+        
+    # Get all historical readings
     history = get_all_historical_readings('power')
     
-    output = io.StringIO()
-    writer = csv.writer(output)
-    
-    # Write CSV Header
-    writer.writerow(['Date', 'Power House', 'Parameter', 'Value (kW)', 'Power Factor (PF)'])
-    
+    # Populate the table cells
     for entry in history:
-        date_str = entry['date']
+        date_str = entry['date'] # "YYYY-MM-DD"
+        # Only populate readings for the current month
+        if not date_str.startswith(current_month_prefix):
+            continue
+            
         data = entry['data']
+        try:
+            # Parse day of month D
+            day_part = date_str.split('-')[2]
+            D = int(day_part)
+        except Exception:
+            continue
+            
+        # Determine row number based on layout mapping formulas
+        # Power House 1
+        if 1 <= D <= 15:
+            row_ph1 = D + 3
+        elif 16 <= D <= 30:
+            row_ph1 = D + 5
+        else:
+            row_ph1 = None
+            
+        # Power House 2
+        if 1 <= D <= 15:
+            row_ph2 = D + 38
+        elif 16 <= D <= 30:
+            row_ph2 = D + 40
+        else:
+            row_ph2 = None
+            
+        # Helper to safely parse numbers
+        def to_num(val):
+            if val == '' or val is None:
+                return None
+            try:
+                if '.' in val:
+                    return float(val)
+                return int(val)
+            except ValueError:
+                return val
+
+        # Write Power House 1 cells
+        if row_ph1:
+            ws.cell(row=row_ph1, column=2, value=to_num(data.get('ph1_line_import')))
+            ws.cell(row=row_ph1, column=3, value=to_num(data.get('ph1_line_import_pf')))
+            ws.cell(row=row_ph1, column=4, value=to_num(data.get('ph1_line_export')))
+            ws.cell(row=row_ph1, column=5, value=to_num(data.get('ph1_line_export_pf')))
+            ws.cell(row=row_ph1, column=6, value=to_num(data.get('ph1_solar_75')))
+            ws.cell(row=row_ph1, column=7, value=to_num(data.get('ph1_solar_75_pf')))
+            ws.cell(row=row_ph1, column=8, value=to_num(data.get('ph1_weld_import')))
+            ws.cell(row=row_ph1, column=9, value=to_num(data.get('ph1_weld_import_pf')))
+            ws.cell(row=row_ph1, column=10, value=to_num(data.get('ph1_weld_export')))
+            ws.cell(row=row_ph1, column=11, value=to_num(data.get('ph1_weld_export_pf')))
+            ws.cell(row=row_ph1, column=12, value=to_num(data.get('ph1_solar_33')))
+            ws.cell(row=row_ph1, column=13, value=to_num(data.get('ph1_solar_33_pf')))
+            
+        # Write Power House 2 cells
+        if row_ph2:
+            ws.cell(row=row_ph2, column=2, value=to_num(data.get('ph2_line_import')))
+            ws.cell(row=row_ph2, column=3, value=to_num(data.get('ph2_line_import_pf')))
+            ws.cell(row=row_ph2, column=4, value=to_num(data.get('ph2_line_export')))
+            ws.cell(row=row_ph2, column=5, value=to_num(data.get('ph2_line_export_pf')))
+            ws.cell(row=row_ph2, column=6, value=to_num(data.get('ph2_solar_90')))
+            ws.cell(row=row_ph2, column=7, value=to_num(data.get('ph2_solar_90_pf')))
+            ws.cell(row=row_ph2, column=8, value=to_num(data.get('ph2_weld_import')))
+            ws.cell(row=row_ph2, column=9, value=to_num(data.get('ph2_weld_import_pf')))
+
+    # Fill in the Month/Year header cells
+    try:
+        parts = current_month_prefix.split('-')
+        month_year_str = f"{parts[1]}/{parts[0]}"
+    except Exception:
+        month_year_str = ""
         
-        # Power House 1 rows
-        writer.writerow([date_str, 'Power House 1', 'Solar 75 KW', data.get('ph1_solar_75', ''), data.get('ph1_solar_75_pf', '')])
-        writer.writerow([date_str, 'Power House 1', 'Solar 33 KW', data.get('ph1_solar_33', ''), data.get('ph1_solar_33_pf', '')])
-        writer.writerow([date_str, 'Power House 1', 'Power Line IMPORT', data.get('ph1_line_import', ''), data.get('ph1_line_import_pf', '')])
-        writer.writerow([date_str, 'Power House 1', 'Power Line EXPORT', data.get('ph1_line_export', ''), data.get('ph1_line_export_pf', '')])
-        writer.writerow([date_str, 'Power House 1', 'Welding Line IMPORT', data.get('ph1_weld_import', ''), data.get('ph1_weld_import_pf', '')])
-        writer.writerow([date_str, 'Power House 1', 'Welding Line EXPORT', data.get('ph1_weld_export', ''), data.get('ph1_weld_export_pf', '')])
-        
-        # Power House 2 rows
-        writer.writerow([date_str, 'Power House 2', 'Solar 90 KW', data.get('ph2_solar_90', ''), data.get('ph2_solar_90_pf', '')])
-        writer.writerow([date_str, 'Power House 2', 'Power Line IMPORT', data.get('ph2_line_import', ''), data.get('ph2_line_import_pf', '')])
-        writer.writerow([date_str, 'Power House 2', 'Power Line EXPORT', data.get('ph2_line_export', ''), data.get('ph2_line_export_pf', '')])
-        writer.writerow([date_str, 'Power House 2', 'Welding Line IMPORT', data.get('ph2_weld_import', ''), data.get('ph2_weld_import_pf', '')])
-        writer.writerow([date_str, 'Power House 2', 'Welding Line EXPORT', data.get('ph2_weld_export', ''), data.get('ph2_weld_export_pf', '')])
-        
-        # Blank row to separate dates
-        writer.writerow([])
-        
-    output.seek(0)
-    return Response(
-        output.getvalue(),
-        mimetype="text/csv",
-        headers={"Content-disposition": "attachment; filename=power_readings.csv"}
+    ws.cell(row=1, column=11, value=f"DOC NO: R/MAI/EB\nMONTH/YEAR: {month_year_str}")
+    ws.cell(row=36, column=8, value=f"DOC NO: R/MAI/EB\nMONTH/YEAR: {month_year_str}")
+    
+    # Save the file to memory
+    file_stream = io.BytesIO()
+    wb.save(file_stream)
+    file_stream.seek(0)
+    
+    return send_file(
+        file_stream,
+        mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        as_attachment=True,
+        download_name="power_readings.xlsx"
     )
 
 # Export Water Valve readings to CSV/Excel
 @app.route('/dashboard/daily/readings/water/export')
 @login_required
 def export_water():
-    import csv
     import io
-    from flask import Response
+    import openpyxl
+    from flask import send_file
+    from openpyxl.styles import Font, Alignment, PatternFill
     
     history = get_all_historical_readings('water')
     
-    output = io.StringIO()
-    writer = csv.writer(output)
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "water_readings"
     
-    # Write CSV Header
-    writer.writerow(['Date', 'Valve Name', 'Flow Reading (m³/h)'])
+    # Setup styles
+    title_font = Font(name="Calibri", size=14, bold=True, color="FFFFFF")
+    header_font = Font(name="Calibri", size=11, bold=True, color="FFFFFF")
+    cell_font = Font(name="Calibri", size=11)
     
+    dark_fill = PatternFill(start_color="1F2937", end_color="1F2937", fill_type="solid") # Dark gray
+    accent_fill = PatternFill(start_color="3B82F6", end_color="3B82F6", fill_type="solid") # Blue accent
+    
+    # Set up Title Row
+    ws.merge_cells("A1:C1")
+    title_cell = ws["A1"]
+    title_cell.value = "BARANI HYDRAULICS INDIA PRIVATE LIMITED"
+    title_cell.font = title_font
+    title_cell.fill = accent_fill
+    title_cell.alignment = Alignment(horizontal="center", vertical="center")
+    ws.row_dimensions[1].height = 40
+    
+    # Set up Headers
+    headers = ['Date', 'Valve Name', 'Flow Reading (m³/h)']
+    for col_idx, header in enumerate(headers, 1):
+        cell = ws.cell(row=2, column=col_idx, value=header)
+        cell.font = header_font
+        cell.fill = dark_fill
+        cell.alignment = Alignment(horizontal="center", vertical="center")
+    ws.row_dimensions[2].height = 25
+    
+    # Fill Data
+    row_idx = 3
     for entry in history:
         date_str = entry['date']
         data = entry['data']
         
         # Valves 1 to 16
         for i in range(1, 17):
-            writer.writerow([date_str, f"VALVE {i}", data.get(f"valve_{i}", '')])
+            ws.cell(row=row_idx, column=1, value=date_str).font = cell_font
+            ws.cell(row=row_idx, column=2, value=f"VALVE {i}").font = cell_font
             
-        # Blank row to separate dates
-        writer.writerow([])
+            # Parse value
+            val = data.get(f"valve_{i}", '')
+            try:
+                val = float(val) if '.' in val else int(val)
+            except ValueError:
+                pass
+            ws.cell(row=row_idx, column=3, value=val).font = cell_font
+            
+            # Alignment
+            ws.cell(row=row_idx, column=1).alignment = Alignment(horizontal="center")
+            ws.cell(row=row_idx, column=2).alignment = Alignment(horizontal="left")
+            ws.cell(row=row_idx, column=3).alignment = Alignment(horizontal="right")
+            
+            row_idx += 1
+            
+        # Add an empty row for separation between dates
+        row_idx += 1
         
-    output.seek(0)
-    return Response(
-        output.getvalue(),
-        mimetype="text/csv",
-        headers={"Content-disposition": "attachment; filename=water_readings.csv"}
+    # Auto-adjust column widths
+    for col in ws.columns:
+        max_len = max(len(str(cell.value or '')) for cell in col)
+        col_letter = openpyxl.utils.get_column_letter(col[0].column)
+        ws.column_dimensions[col_letter].width = max(max_len + 3, 12)
+        
+    file_stream = io.BytesIO()
+    wb.save(file_stream)
+    file_stream.seek(0)
+    
+    return send_file(
+        file_stream,
+        mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        as_attachment=True,
+        download_name="water_readings.xlsx"
     )
 
 @app.route('/logout')
