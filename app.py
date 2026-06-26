@@ -501,21 +501,71 @@ def export_power():
         wb = openpyxl.load_workbook(template_path)
         ws = wb['power_readings']
         
-        # Clear pre-existing sample values from the template to only show actual database readings
+        # Clear pre-existing sample values and cell fills from the template to only show actual database readings
+        from openpyxl.styles import PatternFill
+        no_fill = PatternFill(fill_type=None)
+        yellow_fill = PatternFill(start_color="FFC000", end_color="FFC000", fill_type="solid")
+        
         # Power House 1
         for r in range(4, 19):
-            for c in range(2, 14):
-                ws.cell(row=r, column=c).value = None
+            for c in range(1, 14):
+                if c >= 2:
+                    ws.cell(row=r, column=c).value = None
+                ws.cell(row=r, column=c).fill = no_fill
         for r in range(21, 36):
-            for c in range(2, 14):
-                ws.cell(row=r, column=c).value = None
+            for c in range(1, 14):
+                if c >= 2:
+                    ws.cell(row=r, column=c).value = None
+                ws.cell(row=r, column=c).fill = no_fill
         # Power House 2
         for r in range(39, 54):
-            for c in range(2, 10):
-                ws.cell(row=r, column=c).value = None
+            for c in range(1, 10):
+                if c >= 2:
+                    ws.cell(row=r, column=c).value = None
+                ws.cell(row=r, column=c).fill = no_fill
         for r in range(56, 71):
-            for c in range(2, 10):
-                ws.cell(row=r, column=c).value = None
+            for c in range(1, 10):
+                if c >= 2:
+                    ws.cell(row=r, column=c).value = None
+                ws.cell(row=r, column=c).fill = no_fill
+                
+        # Calculate Sundays for the current calendar month
+        try:
+            year, month = map(int, current_month_prefix.split('-'))
+        except Exception:
+            year, month = 2026, 6
+            
+        sundays = []
+        for day in range(1, 32):
+            try:
+                dt = datetime(year, month, day)
+                if dt.weekday() == 6: # Sunday
+                    sundays.append(day)
+            except ValueError:
+                pass
+                
+        # Apply yellow fill to actual Sunday rows
+        for D in sundays:
+            if 1 <= D <= 15:
+                r1 = D + 3
+            elif 16 <= D <= 30:
+                r1 = D + 5
+            else:
+                r1 = None
+                
+            if 1 <= D <= 15:
+                r2 = D + 38
+            elif 16 <= D <= 30:
+                r2 = D + 40
+            else:
+                r2 = None
+                
+            if r1:
+                for c in range(1, 14):
+                    ws.cell(row=r1, column=c).fill = yellow_fill
+            if r2:
+                for c in range(1, 10):
+                    ws.cell(row=r2, column=c).fill = yellow_fill
     except Exception as e:
         app.logger.error(f"Error loading/clearing Excel template: {str(e)}")
         return f"Error loading Excel template: {str(e)}", 500
@@ -634,14 +684,50 @@ def export_water():
         wb = openpyxl.load_workbook(template_path)
         ws = wb['water_readings']
         
-        # Clear data rows
-        # Valves 1 to 16
+        # Clear data rows values and background fills
+        from openpyxl.styles import PatternFill
+        no_fill = PatternFill(fill_type=None)
+        yellow_fill = PatternFill(start_color="FFC000", end_color="FFC000", fill_type="solid")
+        
+        # Valves 1 to 16 (Columns A to Q, indices 1 to 17)
         for r in range(4, 19):
-            for c in range(2, 18):
-                ws.cell(row=r, column=c).value = None
+            for c in range(1, 18):
+                if c >= 2:
+                    ws.cell(row=r, column=c).value = None
+                ws.cell(row=r, column=c).fill = no_fill
         for r in range(21, 36):
-            for c in range(2, 18):
-                ws.cell(row=r, column=c).value = None
+            for c in range(1, 18):
+                if c >= 2:
+                    ws.cell(row=r, column=c).value = None
+                ws.cell(row=r, column=c).fill = no_fill
+                
+        # Calculate Sundays for the current calendar month
+        try:
+            year, month = map(int, current_month_prefix.split('-'))
+        except Exception:
+            year, month = 2026, 6
+            
+        sundays = []
+        for day in range(1, 32):
+            try:
+                dt = datetime(year, month, day)
+                if dt.weekday() == 6: # Sunday
+                    sundays.append(day)
+            except ValueError:
+                pass
+                
+        # Apply yellow fill to actual Sunday rows
+        for D in sundays:
+            if 1 <= D <= 15:
+                row_idx = D + 3
+            elif 16 <= D <= 30:
+                row_idx = D + 5
+            else:
+                row_idx = None
+                
+            if row_idx:
+                for c in range(1, 18):
+                    ws.cell(row=row_idx, column=c).fill = yellow_fill
     except Exception as e:
         app.logger.error(f"Error loading/clearing Excel template: {str(e)}")
         return f"Error loading Excel template: {str(e)}", 500
