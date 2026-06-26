@@ -745,8 +745,37 @@ h1 {
   white-space: nowrap;
 }
 
+/* Ensure the header action buttons wrap elegantly and adjust on mobile */
+.dashboard-header > div:last-child {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
 @media (max-width: 600px) {
+  .dashboard-header > div:last-child {
+    gap: 8px;
+    width: 100%;
+    justify-content: flex-start;
+  }
+  
   .live-clock {
-    display: none; /* Hide clock on smaller mobile screens to avoid crowding header */
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+  
+  .user-badge {
+    padding: 6px 12px;
+  }
+  
+  .user-email {
+    font-size: 12px;
+  }
+  
+  .dashboard-header .btn-secondary {
+    padding: 8px 12px;
+    font-size: 12px;
+    height: auto;
   }
 }
