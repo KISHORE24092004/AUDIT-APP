@@ -1,14 +1,14 @@
 {% extends "base.html" %}
 
-{% block title %}{{ genset_name }} Checklist - Portal{% endblock %}
+{% block title %}Genset-{{ genset_id }} Checklist - Portal{% endblock %}
 
 {% block content %}
 <div class="dashboard-layout" style="max-width: 800px;">
   <!-- Header -->
   <header class="dashboard-header">
     <div>
-      <h1>{{ genset_name }} Daily Checklist</h1>
-      <p class="subtitle" style="margin-bottom: 0;">Submit daily operational check logs for {{ genset_name }} ({{ capacity }}).</p>
+      <h1>Genset-{{ genset_id }} Daily Checklist</h1>
+      <p class="subtitle" style="margin-bottom: 0;">Submit daily backup Genset-{{ genset_id }} ({{ capacity }}) checklist logs.</p>
     </div>
     
     <div style="display: flex; align-items: center; gap: 16px;">
@@ -40,19 +40,19 @@
     <span class="breadcrumb-separator"><i class="fa-solid fa-chevron-right"></i></span>
     <a href="{{ url_for('checklists') }}" class="breadcrumb-item">Checklists</a>
     <span class="breadcrumb-separator"><i class="fa-solid fa-chevron-right"></i></span>
-    <span class="breadcrumb-active">{{ genset_name }}</span>
+    <span class="breadcrumb-active">Genset-{{ genset_id }}</span>
   </div>
 
-  <form id="genset{{ genset_id }}-checklist-form" action="{{ url_for('genset_checklist', genset_id=genset_id) }}" method="POST" data-date="{{ today_date }}" {% if locked %}data-locked="true"{% endif %}>
+  <form id="genset-checklist-form-{{ genset_id }}" action="{{ url_for('genset_checklist_by_id', genset_id=genset_id) }}" method="POST" data-date="{{ today_date }}" {% if locked %}data-locked="true"{% endif %}>
     <div class="readings-container">
       <div class="table-wrapper" style="width: 100%; margin-bottom: 24px;">
-        <h2 class="table-wrapper-title">22-Point Maintenance Check - {{ genset_name }} ({{ capacity }})</h2>
+        <h2 class="table-wrapper-title">Genset-{{ genset_id }} ({{ capacity }}) 22-Point Checklist</h2>
         <table class="readings-table">
           <thead>
             <tr>
               <th style="width: 10%; text-align: center;">S.No</th>
               <th style="width: 70%;">Checklist Operational Question</th>
-              <th style="width: 20%; text-align: center;">Status (OK)</th>
+              <th style="width: 20%; text-align: center;">Status (Tick if OK)</th>
             </tr>
           </thead>
           <tbody>

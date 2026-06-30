@@ -392,25 +392,23 @@ def api_water_readings():
     month_data = [entry for entry in history if entry['date'].startswith(current_month_prefix)]
     return {"status": "success", "data": month_data, "month_year": month_year_display}
 
-# JSON API Route for Genset-1 readings
+# JSON API Route for Genset 1 readings
 @app.route('/api/readings/genset1')
 @login_required
 def api_genset1_readings():
-    current_date = datetime.utcnow() + timedelta(hours=5, minutes=30)
-    current_month_prefix = current_date.strftime("%Y-%m")
-    month_year_display = current_date.strftime("%B %Y")
-    history = get_all_historical_readings('genset1')
-    month_data = [entry for entry in history if entry['date'].startswith(current_month_prefix)]
-    return {"status": "success", "data": month_data, "month_year": month_year_display}
+    return get_genset_api_readings(1)
 
-# JSON API Route for Genset-2 readings
+# JSON API Route for Genset 2 readings
 @app.route('/api/readings/genset2')
 @login_required
 def api_genset2_readings():
+    return get_genset_api_readings(2)
+
+def get_genset_api_readings(genset_id):
     current_date = datetime.utcnow() + timedelta(hours=5, minutes=30)
     current_month_prefix = current_date.strftime("%Y-%m")
     month_year_display = current_date.strftime("%B %Y")
-    history = get_all_historical_readings('genset2')
+    history = get_all_historical_readings(f"genset{genset_id}")
     month_data = [entry for entry in history if entry['date'].startswith(current_month_prefix)]
     return {"status": "success", "data": month_data, "month_year": month_year_display}
 
@@ -428,46 +426,41 @@ def checklists():
     user = session['user']
     return render_template('checklists.html', user=user)
 
-# Genset Checklist Form
+# Genset Checklist Form by ID
 @app.route('/dashboard/daily/checklists/genset/<int:genset_id>', methods=['GET', 'POST'])
 @login_required
-def genset_checklist(genset_id):
-    if genset_id not in [1, 2]:
-        flash("Invalid Genset ID specified.", "danger")
-        return redirect(url_for('checklists'))
+def genset_checklist_by_id(genset_id):
+    if genset_id not in (1, 2):
+        return "Invalid Genset ID", 404
         
     user = session['user']
     today_date = get_current_ist_date()
-    
-    genset_name = "Genset-1" if genset_id == 1 else "Genset-2"
+    db_key = f"genset{genset_id}"
     capacity = "125kW" if genset_id == 1 else "160kW"
-    db_prefix = f"genset{genset_id}"
     
     if request.method == 'POST':
         # Check if already locked
-        existing_data = get_readings_data(db_prefix, today_date)
+        existing_data = get_readings_data(db_key, today_date)
         if existing_data:
-            flash(f"Checklist for {genset_name} today is already locked and cannot be modified.", "warning")
-            return redirect(url_for('genset_checklist', genset_id=genset_id))
-
+            flash(f"Checklist for Genset-{genset_id} is already locked for today.", "warning")
+            return redirect(url_for('genset_checklist_by_id', genset_id=genset_id))
+            
         # Collect 22 checklist questions
         data = {}
         for idx in range(1, 23):
             data[f'q{idx}'] = 'OK' if request.form.get(f'q{idx}') == 'OK' else '-'
-
-        if set_readings_data(db_prefix, today_date, data):
-            flash(f"{genset_name} checklist saved successfully!", "success")
-            return redirect(url_for('genset_checklist', genset_id=genset_id))
+            
+        if set_readings_data(db_key, today_date, data):
+            flash(f"Genset-{genset_id} checklist saved successfully!", "success")
+            return redirect(url_for('genset_checklist_by_id', genset_id=genset_id))
         else:
-            flash(f"Failed to save {genset_name} checklist to database.", "danger")
-            return render_template('genset.html', user=user, data=data, today_date=today_date, locked=False,
-                                   genset_id=genset_id, genset_name=genset_name, capacity=capacity)
-
+            flash("Failed to save checklist to database.", "danger")
+            return render_template('genset.html', user=user, data=data, today_date=today_date, locked=False, genset_id=genset_id, capacity=capacity)
+            
     # Fetch today's readings if already entered
-    data = get_readings_data(db_prefix, today_date)
+    data = get_readings_data(db_key, today_date)
     locked = True if data else False
-    return render_template('genset.html', user=user, data=data, today_date=today_date, locked=locked,
-                           genset_id=genset_id, genset_name=genset_name, capacity=capacity)
+    return render_template('genset.html', user=user, data=data, today_date=today_date, locked=locked, genset_id=genset_id, capacity=capacity)
 
 # Readings Category Dashboard (Power / Water Selection)
 @app.route('/dashboard/daily/readings')
@@ -872,24 +865,37 @@ def export_water():
         download_name="water_readings.xlsx"
     )
 
-def export_single_genset(genset_id):
+# Export Genset 1 checklist readings to Excel
+@app.route('/dashboard/daily/checklists/genset1/export')
+@admin_required
+def export_genset1():
+    return export_genset_generic(1, "125kW")
+
+# Export Genset 2 checklist readings to Excel
+@app.route('/dashboard/daily/checklists/genset2/export')
+@admin_required
+def export_genset2():
+    return export_genset_generic(2, "160kW")
+
+def export_genset_generic(genset_id, capacity_str):
     import io
     import openpyxl
     from flask import send_file
     
+    # Get the current month and year in YYYY-MM format based on IST
     current_month_prefix = get_current_ist_date()[:7] # "YYYY-MM"
-    filename = f"genset{genset_id}_readings.xlsx"
-    db_prefix = f"genset{genset_id}"
-    doc_no = f"DOC NO: R/MAI/GS{genset_id}"
+    db_key = f"genset{genset_id}"
+    template_name = f"genset{genset_id}_readings.xlsx"
+    template_path = os.path.join(os.path.dirname(__file__), template_name)
     
-    template_path = os.path.join(os.path.dirname(__file__), filename)
     if not os.path.exists(template_path):
-        return f"Template {filename} not found on server.", 404
+        return f"Template {template_name} not found on server.", 404
         
     try:
         wb = openpyxl.load_workbook(template_path)
-        ws = wb['genset_readings']
+        ws = wb[f'genset{genset_id}_readings']
         
+        # Clear data rows values and background fills
         from openpyxl.styles import PatternFill
         no_fill = PatternFill(fill_type=None)
         yellow_fill = PatternFill(start_color="FFC000", end_color="FFC000", fill_type="solid")
@@ -904,7 +910,7 @@ def export_single_genset(genset_id):
                 ws.cell(row=r, column=c).value = None
                 ws.cell(row=r, column=c).fill = no_fill
                 
-        # Calculate Sundays
+        # Calculate Sundays for the current calendar month
         try:
             year, month = map(int, current_month_prefix.split('-'))
         except Exception:
@@ -914,11 +920,12 @@ def export_single_genset(genset_id):
         for day in range(1, 32):
             try:
                 dt = datetime(year, month, day)
-                if dt.weekday() == 6:
+                if dt.weekday() == 6: # Sunday
                     sundays.append(day)
             except ValueError:
                 pass
                 
+        # Apply yellow fill to actual Sunday rows
         for D in sundays:
             if 1 <= D <= 15:
                 row_idx = D + 3
@@ -926,22 +933,27 @@ def export_single_genset(genset_id):
                 row_idx = D + 5
             else:
                 row_idx = None
+                
             if row_idx:
                 for c in range(1, 24):
                     ws.cell(row=row_idx, column=c).fill = yellow_fill
     except Exception as e:
+        app.logger.error(f"Error loading/clearing Excel template: {str(e)}")
         return f"Error loading Excel template: {str(e)}", 500
         
-    history = get_all_historical_readings(db_prefix)
+    # Get all historical readings
+    history = get_all_historical_readings(db_key)
     
+    # Populate the table cells
     for entry in history:
-        date_str = entry['date']
+        date_str = entry['date'] # "YYYY-MM-DD"
         if not date_str.startswith(current_month_prefix):
             continue
             
         data = entry['data']
         try:
-            D = int(date_str.split('-')[2])
+            day_part = date_str.split('-')[2]
+            D = int(day_part)
         except Exception:
             continue
             
@@ -953,17 +965,19 @@ def export_single_genset(genset_id):
             row_idx = None
             
         if row_idx:
+            # Write checks Q1-Q22 to columns B to W (indices 2 to 23)
             for idx in range(1, 23):
                 val = data.get(f'q{idx}', '-')
                 ws.cell(row=row_idx, column=idx+1, value=val)
                 
+    # Fill in the Month/Year header cells (merged V1:W1, column V is 22)
     try:
         parts = current_month_prefix.split('-')
         month_year_str = f"{parts[1]}/{parts[0]}"
     except Exception:
         month_year_str = ""
         
-    v1_cell = ws.cell(row=1, column=22, value=f"{doc_no}\nMONTH/YEAR: {month_year_str}")
+    v1_cell = ws.cell(row=1, column=22, value=f"DOC NO: R/MAI/GS{genset_id}\nMONTH/YEAR: {month_year_str}")
     from openpyxl.styles import Alignment
     current_align = v1_cell.alignment
     v1_cell.alignment = Alignment(
@@ -972,6 +986,7 @@ def export_single_genset(genset_id):
         wrap_text=True
     )
     
+    # Save the file to memory
     file_stream = io.BytesIO()
     wb.save(file_stream)
     file_stream.seek(0)
@@ -982,16 +997,6 @@ def export_single_genset(genset_id):
         as_attachment=True,
         download_name=f"genset{genset_id}_readings.xlsx"
     )
-
-@app.route('/dashboard/daily/checklists/genset1/export')
-@admin_required
-def export_genset1():
-    return export_single_genset(1)
-
-@app.route('/dashboard/daily/checklists/genset2/export')
-@admin_required
-def export_genset2():
-    return export_single_genset(2)
 
 # Admin and User CRUD Management Routes
 def get_admin_supabase_client():

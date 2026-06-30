@@ -106,8 +106,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const telemetryForms = [
     { id: 'power-readings-form', key: 'draft_power_readings' },
     { id: 'water-readings-form', key: 'draft_water_readings' },
-    { id: 'genset1-checklist-form', key: 'draft_genset1_checklist' },
-    { id: 'genset2-checklist-form', key: 'draft_genset2_checklist' }
+    { id: 'genset-checklist-form-1', key: 'draft_genset1_checklist' },
+    { id: 'genset-checklist-form-2', key: 'draft_genset2_checklist' }
   ];
 
   telemetryForms.forEach(config => {
@@ -251,7 +251,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } else if (type === 'genset1') {
           viewerTitle.innerHTML = '<i class="fa-solid fa-charging-station" style="color: var(--color-warning);"></i> Genset-1 (125kW) Checklist - Monthly View';
         } else {
-          viewerTitle.innerHTML = '<i class="fa-solid fa-charging-station" style="color: #f59e0b;"></i> Genset-2 (160kW) Checklist - Monthly View';
+          viewerTitle.innerHTML = '<i class="fa-solid fa-charging-station" style="color: #ec4899;"></i> Genset-2 (160kW) Checklist - Monthly View';
         }
         
         // Open modal
@@ -273,7 +273,7 @@ document.addEventListener('DOMContentLoaded', () => {
             } else if (type === 'genset1') {
               viewerTitle.innerHTML = `<i class="fa-solid fa-charging-station" style="color: var(--color-warning);"></i> Genset-1 (125kW) Checklist - ${monthYearDisplay}`;
             } else {
-              viewerTitle.innerHTML = `<i class="fa-solid fa-charging-station" style="color: #f59e0b;"></i> Genset-2 (160kW) Checklist - ${monthYearDisplay}`;
+              viewerTitle.innerHTML = `<i class="fa-solid fa-charging-station" style="color: #ec4899;"></i> Genset-2 (160kW) Checklist - ${monthYearDisplay}`;
             }
             
             // Compute days of current month
@@ -382,9 +382,11 @@ document.addEventListener('DOMContentLoaded', () => {
               }
               html += `</tbody></table>`;
             } else {
-              const label = type === 'genset1' ? 'Genset-1 (125kW)' : 'Genset-2 (160kW)';
-              const titleColor = type === 'genset1' ? 'var(--color-warning)' : '#f59e0b';
-              html += `<div style="padding: 16px;"><h3 style="font-size: 15px; margin-bottom: 12px; color: var(--text-primary); text-transform: uppercase; letter-spacing: 0.5px; border-left: 3px solid ${titleColor}; padding-left: 8px;">${label}</h3></div>`;
+              const gid = type === 'genset1' ? 1 : 2;
+              const cap = type === 'genset1' ? '125kW' : '160kW';
+              const borderCol = type === 'genset1' ? 'var(--color-warning)' : '#ec4899';
+              
+              html += `<div style="padding: 16px;"><h3 style="font-size: 15px; margin-bottom: 12px; color: var(--text-primary); text-transform: uppercase; letter-spacing: 0.5px; border-left: 3px solid ${borderCol}; padding-left: 8px;">Generator Set ${gid} (${cap})</h3></div>`;
               html += `<div style="overflow-x: auto; width: 100%;"><table class="viewer-table">
                 <thead>
                   <tr>
