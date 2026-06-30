@@ -379,21 +379,14 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
               // Build Genset 1 Table
               html += `<div style="padding: 16px;"><h3 style="font-size: 15px; margin-bottom: 12px; color: var(--text-primary); text-transform: uppercase; letter-spacing: 0.5px; border-left: 3px solid var(--color-warning); padding-left: 8px;">Generator Set 1</h3></div>`;
-              html += `<table class="viewer-table">
+              html += `<div style="overflow-x: auto; width: 100%;"><table class="viewer-table">
                 <thead>
                   <tr>
-                    <th>Date</th>
-                    <th>Mode</th>
-                    <th>Run Hrs</th>
-                    <th>Battery (V)</th>
-                    <th>Lube Oil</th>
-                    <th>Coolant</th>
-                    <th>Fuel (%)</th>
-                    <th>Volt R (V)</th>
-                    <th>Volt Y (V)</th>
-                    <th>Volt B (V)</th>
-                    <th>Freq (Hz)</th>
-                  </tr>
+                    <th>Date</th>`;
+              for (let i = 1; i <= 22; i++) {
+                html += `<th title="Question ${i}">Q${i}</th>`;
+              }
+              html += `</tr>
                 </thead>
                 <tbody>`;
               
@@ -406,38 +399,26 @@ document.addEventListener('DOMContentLoaded', () => {
                 const rowClass = isSunday ? 'class="sunday-row"' : '';
                 
                 html += `<tr ${rowClass}>
-                  <td style="font-weight: 600;">${dateStr}</td>
-                  <td>${val.g1_mode || '-'}</td>
-                  <td>${val.g1_run_hours || '-'}</td>
-                  <td>${val.g1_battery_voltage || '-'}</td>
-                  <td>${val.g1_lube_oil_level || '-'}</td>
-                  <td>${val.g1_coolant_level || '-'}</td>
-                  <td>${val.g1_fuel_level || '-'}</td>
-                  <td>${val.g1_voltage_r || '-'}</td>
-                  <td>${val.g1_voltage_y || '-'}</td>
-                  <td>${val.g1_voltage_b || '-'}</td>
-                  <td>${val.g1_frequency || '-'}</td>
-                </tr>`;
+                  <td style="font-weight: 600; min-width: 100px;">${dateStr}</td>`;
+                for (let i = 1; i <= 22; i++) {
+                  const checkVal = val[`g1_q${i}`] || '-';
+                  const displaySymbol = checkVal === 'OK' ? '<span style="color: var(--color-success); font-weight: bold;">✔</span>' : '-';
+                  html += `<td style="text-align: center;">${displaySymbol}</td>`;
+                }
+                html += `</tr>`;
               }
-              html += `</tbody></table>`;
+              html += `</tbody></table></div>`;
 
               // Build Genset 2 Table
               html += `<div style="padding: 24px 16px 16px 16px;"><h3 style="font-size: 15px; margin-bottom: 12px; color: var(--text-primary); text-transform: uppercase; letter-spacing: 0.5px; border-left: 3px solid #ec4899; padding-left: 8px;">Generator Set 2</h3></div>`;
-              html += `<table class="viewer-table">
+              html += `<div style="overflow-x: auto; width: 100%;"><table class="viewer-table">
                 <thead>
                   <tr>
-                    <th>Date</th>
-                    <th>Mode</th>
-                    <th>Run Hrs</th>
-                    <th>Battery (V)</th>
-                    <th>Lube Oil</th>
-                    <th>Coolant</th>
-                    <th>Fuel (%)</th>
-                    <th>Volt R (V)</th>
-                    <th>Volt Y (V)</th>
-                    <th>Volt B (V)</th>
-                    <th>Freq (Hz)</th>
-                  </tr>
+                    <th>Date</th>`;
+              for (let i = 1; i <= 22; i++) {
+                html += `<th title="Question ${i}">Q${i}</th>`;
+              }
+              html += `</tr>
                 </thead>
                 <tbody>`;
               
@@ -450,20 +431,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 const rowClass = isSunday ? 'class="sunday-row"' : '';
                 
                 html += `<tr ${rowClass}>
-                  <td style="font-weight: 600;">${dateStr}</td>
-                  <td>${val.g2_mode || '-'}</td>
-                  <td>${val.g2_run_hours || '-'}</td>
-                  <td>${val.g2_battery_voltage || '-'}</td>
-                  <td>${val.g2_lube_oil_level || '-'}</td>
-                  <td>${val.g2_coolant_level || '-'}</td>
-                  <td>${val.g2_fuel_level || '-'}</td>
-                  <td>${val.g2_voltage_r || '-'}</td>
-                  <td>${val.g2_voltage_y || '-'}</td>
-                  <td>${val.g2_voltage_b || '-'}</td>
-                  <td>${val.g2_frequency || '-'}</td>
-                </tr>`;
+                  <td style="font-weight: 600; min-width: 100px;">${dateStr}</td>`;
+                for (let i = 1; i <= 22; i++) {
+                  const checkVal = val[`g2_q${i}`] || '-';
+                  const displaySymbol = checkVal === 'OK' ? '<span style="color: var(--color-success); font-weight: bold;">✔</span>' : '-';
+                  html += `<td style="text-align: center;">${displaySymbol}</td>`;
+                }
+                html += `</tr>`;
               }
-              html += `</tbody></table>`;
+              html += `</tbody></table></div>`;
             }
             
             viewerContent.innerHTML = html;

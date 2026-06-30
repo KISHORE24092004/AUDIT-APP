@@ -431,21 +431,11 @@ def genset_checklist():
             flash("Checklist for today is already locked and cannot be modified.", "warning")
             return redirect(url_for('genset_checklist'))
 
-        # Collect genset parameters
-        fields = [
-            'g1_run_hours', 'g1_battery_voltage', 'g1_fuel_level', 'g1_voltage_r', 'g1_voltage_y', 'g1_voltage_b', 'g1_frequency',
-            'g2_run_hours', 'g2_battery_voltage', 'g2_fuel_level', 'g2_voltage_r', 'g2_voltage_y', 'g2_voltage_b', 'g2_frequency'
-        ]
-        data = {f: request.form.get(f, '').strip() for f in fields}
-        
-        # Checkbox mappings
-        data['g1_mode'] = 'Auto' if request.form.get('g1_mode') == 'Auto' else 'Manual'
-        data['g1_lube_oil_level'] = 'OK' if request.form.get('g1_lube_oil_level') == 'OK' else 'Low'
-        data['g1_coolant_level'] = 'OK' if request.form.get('g1_coolant_level') == 'OK' else 'Low'
-        
-        data['g2_mode'] = 'Auto' if request.form.get('g2_mode') == 'Auto' else 'Manual'
-        data['g2_lube_oil_level'] = 'OK' if request.form.get('g2_lube_oil_level') == 'OK' else 'Low'
-        data['g2_coolant_level'] = 'OK' if request.form.get('g2_coolant_level') == 'OK' else 'Low'
+        # Collect 22 checklist questions for G1 and G2
+        data = {}
+        for idx in range(1, 23):
+            data[f'g1_q{idx}'] = 'OK' if request.form.get(f'g1_q{idx}') == 'OK' else '-'
+            data[f'g2_q{idx}'] = 'OK' if request.form.get(f'g2_q{idx}') == 'OK' else '-'
         
         if set_readings_data('genset', today_date, data):
             flash("Genset checklist saved successfully!", "success")
@@ -887,13 +877,13 @@ def export_genset():
         no_fill = PatternFill(fill_type=None)
         yellow_fill = PatternFill(start_color="FFC000", end_color="FFC000", fill_type="solid")
         
-        # Columns B to U (indices 2 to 21)
+        # Columns B to AS (indices 2 to 45)
         for r in range(4, 19):
-            for c in range(2, 22):
+            for c in range(2, 46):
                 ws.cell(row=r, column=c).value = None
                 ws.cell(row=r, column=c).fill = no_fill
         for r in range(21, 36):
-            for c in range(2, 22):
+            for c in range(2, 46):
                 ws.cell(row=r, column=c).value = None
                 ws.cell(row=r, column=c).fill = no_fill
                 
@@ -922,7 +912,7 @@ def export_genset():
                 row_idx = None
                 
             if row_idx:
-                for c in range(1, 22):
+                for c in range(1, 46):
                     ws.cell(row=row_idx, column=c).fill = yellow_fill
     except Exception as e:
         app.logger.error(f"Error loading/clearing Excel template: {str(e)}")
@@ -931,23 +921,7 @@ def export_genset():
     # Get all historical readings
     history = get_all_historical_readings('genset')
     
-    # Helper to safely parse numbers
-    def to_num(val):
-        if val == '' or val is None:
-            return None
-        try:
-            if '.' in val:
-                return float(val)
-            return int(val)
-        except ValueError:
-            return val
-            
     # Populate the table cells
-    fields = [
-        'g1_mode', 'g1_run_hours', 'g1_battery_voltage', 'g1_lube_oil_level', 'g1_coolant_level', 'g1_fuel_level', 'g1_voltage_r', 'g1_voltage_y', 'g1_voltage_b', 'g1_frequency',
-        'g2_mode', 'g2_run_hours', 'g2_battery_voltage', 'g2_lube_oil_level', 'g2_coolant_level', 'g2_fuel_level', 'g2_voltage_r', 'g2_voltage_y', 'g2_voltage_b', 'g2_frequency'
-    ]
-    
     for entry in history:
         date_str = entry['date'] # "YYYY-MM-DD"
         if not date_str.startswith(current_month_prefix):
@@ -968,25 +942,26 @@ def export_genset():
             row_idx = None
             
         if row_idx:
-            for idx, field in enumerate(fields):
-                val = data.get(field)
-                if 'mode' in field or 'level' in field:
-                    parsed_val = val if val else None
-                else:
-                    parsed_val = to_num(val)
-                ws.cell(row=row_idx, column=idx+2, value=parsed_val)
+            # Write G1 checks to columns B to W (indices 2 to 23)
+            for idx in range(1, 23):
+                val = data.get(f'g1_q{idx}', '-')
+                ws.cell(row=row_idx, column=idx+1, value=val)
+            # Write G2 checks to columns X to AS (indices 24 to 45)
+            for idx in range(1, 23):
+                val = data.get(f'g2_q{idx}', '-')
+                ws.cell(row=row_idx, column=idx+23, value=val)
                 
-    # Fill in the Month/Year header cells (merged T1:U1, column T is 20)
+    # Fill in the Month/Year header cells (merged AQ1:AS1, column AQ is 43)
     try:
         parts = current_month_prefix.split('-')
         month_year_str = f"{parts[1]}/{parts[0]}"
     except Exception:
         month_year_str = ""
         
-    t1_cell = ws.cell(row=1, column=20, value=f"DOC NO: R/MAI/GS\nMONTH/YEAR: {month_year_str}")
+    aq1_cell = ws.cell(row=1, column=43, value=f"DOC NO: R/MAI/GS\nMONTH/YEAR: {month_year_str}")
     from openpyxl.styles import Alignment
-    current_align = t1_cell.alignment
-    t1_cell.alignment = Alignment(
+    current_align = aq1_cell.alignment
+    aq1_cell.alignment = Alignment(
         horizontal=current_align.horizontal if current_align else 'left',
         vertical=current_align.vertical if current_align else 'center',
         wrap_text=True

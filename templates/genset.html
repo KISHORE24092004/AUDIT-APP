@@ -45,162 +45,64 @@
 
   <form id="genset-checklist-form" action="{{ url_for('genset_checklist') }}" method="POST" data-date="{{ today_date }}" {% if locked %}data-locked="true"{% endif %}>
     <div class="readings-container">
-      <div class="readings-grid">
-        
-        <!-- GENSET 1 -->
-        <div class="table-wrapper">
-          <h2 class="table-wrapper-title">Generator Set 1</h2>
-          <table class="readings-table">
-            <thead>
+      <div class="table-wrapper" style="width: 100%; margin-bottom: 24px;">
+        <h2 class="table-wrapper-title">22-Point Operational Maintenance Checklist</h2>
+        <table class="readings-table">
+          <thead>
+            <tr>
+              <th style="width: 8%; text-align: center;">S.No</th>
+              <th style="width: 52%;">Checklist Operational Question</th>
+              <th style="width: 20%; text-align: center;">Genset 1</th>
+              <th style="width: 20%; text-align: center;">Genset 2</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% set questions = [
+              "Air filter cleaning",
+              "Panel bolt & tightness checking",
+              "Radiator checking",
+              "Battery Distilled water checking",
+              "Battery cleaning",
+              "Woodward cover tightness",
+              "Pump checking",
+              "Diesel hose tightness checking",
+              "Voltage (R, Y, B) checking",
+              "Hose checking",
+              "Running hours",
+              "kWh",
+              "Frequency",
+              "Check cables, nozzles and bolts",
+              "RPM",
+              "Rubber stiffness",
+              "Scale removal & scale softening",
+              "Clean cooling system",
+              "Check belt and tightness",
+              "Drain contamination like water/debris from fuel tank",
+              "Clearance of space b/w genset and walls",
+              "Check grease at joints"
+            ] %}
+            
+            {% for question in questions %}
+              {% set idx = loop.index %}
               <tr>
-                <th style="width: 50%;">Parameters</th>
-                <th style="width: 50%;">Status / Value</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>Mode (Auto/Manual):</td>
-                <td>
-                  <label class="checkbox-wrapper">
-                    <input type="checkbox" name="g1_mode" class="table-input" value="Auto" {% if data.get('g1_mode') == 'Auto' %}checked{% endif %}>
+                <td style="text-align: center; font-weight: 600;">{{ idx }}</td>
+                <td>{{ question }}</td>
+                <td style="text-align: center;">
+                  <label class="checkbox-wrapper" style="justify-content: center; padding: 0; display: inline-flex;">
+                    <input type="checkbox" name="g1_q{{ idx }}" class="table-input" value="OK" {% if data.get('g1_q' ~ idx) == 'OK' %}checked{% endif %}>
                     <span class="custom-checkbox"></span>
-                    <span style="font-size: 11px; color: var(--text-muted);">Auto Mode Active</span>
+                  </label>
+                </td>
+                <td style="text-align: center;">
+                  <label class="checkbox-wrapper" style="justify-content: center; padding: 0; display: inline-flex;">
+                    <input type="checkbox" name="g2_q{{ idx }}" class="table-input" value="OK" {% if data.get('g2_q' ~ idx) == 'OK' %}checked{% endif %}>
+                    <span class="custom-checkbox"></span>
                   </label>
                 </td>
               </tr>
-              <tr>
-                <td>Run Hours (hrs):</td>
-                <td><input type="text" name="g1_run_hours" class="table-input" placeholder="e.g. 1245.8" value="{{ data.get('g1_run_hours', '') }}"></td>
-              </tr>
-              <tr>
-                <td>Battery Voltage (V):</td>
-                <td><input type="text" name="g1_battery_voltage" class="table-input" placeholder="e.g. 12.6" value="{{ data.get('g1_battery_voltage', '') }}"></td>
-              </tr>
-              <tr>
-                <td>Lube Oil Level (OK/Low):</td>
-                <td>
-                  <label class="checkbox-wrapper">
-                    <input type="checkbox" name="g1_lube_oil_level" class="table-input" value="OK" {% if data.get('g1_lube_oil_level') == 'OK' %}checked{% endif %}>
-                    <span class="custom-checkbox"></span>
-                    <span style="font-size: 11px; color: var(--text-muted);">Lube Oil Level OK</span>
-                  </label>
-                </td>
-              </tr>
-              <tr>
-                <td>Coolant Level (OK/Low):</td>
-                <td>
-                  <label class="checkbox-wrapper">
-                    <input type="checkbox" name="g1_coolant_level" class="table-input" value="OK" {% if data.get('g1_coolant_level') == 'OK' %}checked{% endif %}>
-                    <span class="custom-checkbox"></span>
-                    <span style="font-size: 11px; color: var(--text-muted);">Coolant Level OK</span>
-                  </label>
-                </td>
-              </tr>
-              <tr>
-                <td>Fuel Level (%):</td>
-                <td><input type="text" name="g1_fuel_level" class="table-input" placeholder="e.g. 85" value="{{ data.get('g1_fuel_level', '') }}"></td>
-              </tr>
-              <tr class="table-group-header">
-                <td>Voltages (Phase-Phase)</td>
-                <td></td>
-              </tr>
-              <tr>
-                <td style="padding-left: 24px;">R-Phase (V):</td>
-                <td><input type="text" name="g1_voltage_r" class="table-input" placeholder="e.g. 415" value="{{ data.get('g1_voltage_r', '') }}"></td>
-              </tr>
-              <tr>
-                <td style="padding-left: 24px;">Y-Phase (V):</td>
-                <td><input type="text" name="g1_voltage_y" class="table-input" placeholder="e.g. 412" value="{{ data.get('g1_voltage_y', '') }}"></td>
-              </tr>
-              <tr>
-                <td style="padding-left: 24px;">B-Phase (V):</td>
-                <td><input type="text" name="g1_voltage_b" class="table-input" placeholder="e.g. 414" value="{{ data.get('g1_voltage_b', '') }}"></td>
-              </tr>
-              <tr>
-                <td>Frequency (Hz):</td>
-                <td><input type="text" name="g1_frequency" class="table-input" placeholder="e.g. 50" value="{{ data.get('g1_frequency', '') }}"></td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
-        <!-- GENSET 2 -->
-        <div class="table-wrapper">
-          <h2 class="table-wrapper-title">Generator Set 2</h2>
-          <table class="readings-table">
-            <thead>
-              <tr>
-                <th style="width: 50%;">Parameters</th>
-                <th style="width: 50%;">Status / Value</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>Mode (Auto/Manual):</td>
-                <td>
-                  <label class="checkbox-wrapper">
-                    <input type="checkbox" name="g2_mode" class="table-input" value="Auto" {% if data.get('g2_mode') == 'Auto' %}checked{% endif %}>
-                    <span class="custom-checkbox"></span>
-                    <span style="font-size: 11px; color: var(--text-muted);">Auto Mode Active</span>
-                  </label>
-                </td>
-              </tr>
-              <tr>
-                <td>Run Hours (hrs):</td>
-                <td><input type="text" name="g2_run_hours" class="table-input" placeholder="e.g. 984.2" value="{{ data.get('g2_run_hours', '') }}"></td>
-              </tr>
-              <tr>
-                <td>Battery Voltage (V):</td>
-                <td><input type="text" name="g2_battery_voltage" class="table-input" placeholder="e.g. 12.8" value="{{ data.get('g2_battery_voltage', '') }}"></td>
-              </tr>
-              <tr>
-                <td>Lube Oil Level (OK/Low):</td>
-                <td>
-                  <label class="checkbox-wrapper">
-                    <input type="checkbox" name="g2_lube_oil_level" class="table-input" value="OK" {% if data.get('g2_lube_oil_level') == 'OK' %}checked{% endif %}>
-                    <span class="custom-checkbox"></span>
-                    <span style="font-size: 11px; color: var(--text-muted);">Lube Oil Level OK</span>
-                  </label>
-                </td>
-              </tr>
-              <tr>
-                <td>Coolant Level (OK/Low):</td>
-                <td>
-                  <label class="checkbox-wrapper">
-                    <input type="checkbox" name="g2_coolant_level" class="table-input" value="OK" {% if data.get('g2_coolant_level') == 'OK' %}checked{% endif %}>
-                    <span class="custom-checkbox"></span>
-                    <span style="font-size: 11px; color: var(--text-muted);">Coolant Level OK</span>
-                  </label>
-                </td>
-              </tr>
-              <tr>
-                <td>Fuel Level (%):</td>
-                <td><input type="text" name="g2_fuel_level" class="table-input" placeholder="e.g. 90" value="{{ data.get('g2_fuel_level', '') }}"></td>
-              </tr>
-              <tr class="table-group-header">
-                <td>Voltages (Phase-Phase)</td>
-                <td></td>
-              </tr>
-              <tr>
-                <td style="padding-left: 24px;">R-Phase (V):</td>
-                <td><input type="text" name="g2_voltage_r" class="table-input" placeholder="e.g. 415" value="{{ data.get('g2_voltage_r', '') }}"></td>
-              </tr>
-              <tr>
-                <td style="padding-left: 24px;">Y-Phase (V):</td>
-                <td><input type="text" name="g2_voltage_y" class="table-input" placeholder="e.g. 413" value="{{ data.get('g2_voltage_y', '') }}"></td>
-              </tr>
-              <tr>
-                <td style="padding-left: 24px;">B-Phase (V):</td>
-                <td><input type="text" name="g2_voltage_b" class="table-input" placeholder="e.g. 416" value="{{ data.get('g2_voltage_b', '') }}"></td>
-              </tr>
-              <tr>
-                <td>Frequency (Hz):</td>
-                <td><input type="text" name="g2_frequency" class="table-input" placeholder="e.g. 50" value="{{ data.get('g2_frequency', '') }}"></td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
+            {% endfor %}
+          </tbody>
+        </table>
       </div>
 
       <!-- Action buttons -->
