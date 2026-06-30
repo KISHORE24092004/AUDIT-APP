@@ -504,8 +504,8 @@ def genset_readings_entry():
             return redirect(url_for('genset_readings_entry'))
             
         fields = [
-            'run_hours', 'coolant_temp', 'lube_oil_press', 'fuel_level',
-            'battery_volt', 'volt_r', 'volt_y', 'volt_b', 'freq'
+            'battery_volt', 'diesel_filling', 'run_hours', 'voltage',
+            'kwh', 'diesel_level', 'radiator_water', 'caretaker_sign'
         ]
         data = {f: request.form.get(f, '').strip() for f in fields}
         
@@ -1085,8 +1085,8 @@ def export_genset_generic(genset_id, capacity_str):
 @admin_required
 def export_genset_readings():
     genset_fields = [
-        'run_hours', 'coolant_temp', 'lube_oil_press', 'fuel_level',
-        'battery_volt', 'volt_r', 'volt_y', 'volt_b', 'freq'
+        'battery_volt', 'diesel_filling', 'run_hours', 'voltage',
+        'kwh', 'diesel_level', 'radiator_water', 'caretaker_sign'
     ]
     return export_readings_generic("genset", "R/MAI/GR", genset_fields)
 
@@ -1199,7 +1199,7 @@ def export_readings_generic(utility_name, doc_no, fields_list):
         if row_idx:
             for idx, field in enumerate(fields_list):
                 val = data.get(field)
-                if field == 'oil_level':
+                if field in ('oil_level', 'radiator_water', 'caretaker_sign'):
                     parsed_val = val if val else None
                 else:
                     parsed_val = to_num(val)

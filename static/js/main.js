@@ -396,15 +396,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 <thead>
                   <tr>
                     <th>Date</th>
-                    <th>Run Hours</th>
-                    <th>Coolant Temp</th>
-                    <th>Lube Oil Press</th>
-                    <th>Fuel Level</th>
                     <th>Battery Volt</th>
-                    <th>Volt R</th>
-                    <th>Volt Y</th>
-                    <th>Volt B</th>
-                    <th>Freq</th>
+                    <th>Diesel Filling</th>
+                    <th>Run Hours</th>
+                    <th>Voltage</th>
+                    <th>kW/h</th>
+                    <th>Diesel Level</th>
+                    <th>Radiator Water</th>
+                    <th>Caretaker Sign</th>
                   </tr>
                 </thead>
                 <tbody>`;
@@ -419,15 +418,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 html += `<tr ${rowClass}>
                   <td style="font-weight: 600; min-width: 100px;">${dateStr}</td>
-                  <td>${val.run_hours || '-'}</td>
-                  <td>${val.coolant_temp || '-'}</td>
-                  <td>${val.lube_oil_press || '-'}</td>
-                  <td>${val.fuel_level || '-'}</td>
                   <td>${val.battery_volt || '-'}</td>
-                  <td>${val.volt_r || '-'}</td>
-                  <td>${val.volt_y || '-'}</td>
-                  <td>${val.volt_b || '-'}</td>
-                  <td>${val.freq || '-'}</td>
+                  <td>${val.diesel_filling || '-'}</td>
+                  <td>${val.run_hours || '-'}</td>
+                  <td>${val.voltage || '-'}</td>
+                  <td>${val.kwh || '-'}</td>
+                  <td>${val.diesel_level || '-'}</td>
+                  <td>${val.radiator_water || '-'}</td>
+                  <td>${val.caretaker_sign || '-'}</td>
                 </tr>`;
               }
               html += `</tbody></table></div>`;

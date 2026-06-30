@@ -102,7 +102,6 @@ def generate_utility_template(utility_name, doc_no, sheet_title, headers, col_co
             ws.cell(row=r, column=c).value = None
             
     # 9. Clean/Delete any columns beyond col_count in the workbook
-    # Since we loaded power_readings, columns L onwards might be present
     if ws.max_column > col_count:
         ws.delete_cols(col_count + 1, ws.max_column - col_count)
 
@@ -110,12 +109,12 @@ def generate_utility_template(utility_name, doc_no, sheet_title, headers, col_co
     print(f"Successfully generated {dst_name} template!")
 
 if __name__ == "__main__":
-    # Genset Readings (10 columns: A to J, which is col_count=10)
+    # Genset Readings (9 columns: A to I, which is col_count=9)
     genset_headers = [
-        "RUN HOURS", "COOLANT TEMP", "LUBE OIL PRESS", "FUEL LEVEL",
-        "BATTERY VOLT", "VOLT R", "VOLT Y", "VOLT B", "FREQ"
+        "BATTERY VOLTAGE", "DIESEL FILLING (LTR)", "RUNNING HOURS", "VOLTAGE",
+        "KW/H", "DIESEL LEVEL", "RADIATOR WATER", "CARETAKER SIGN"
     ]
-    generate_utility_template("genset", "R/MAI/GR", "Genset Telemetry Readings Log", genset_headers, 10)
+    generate_utility_template("genset", "R/MAI/GR", "Genset Telemetry Readings Log", genset_headers, 9)
     
     # Compressor Readings (8 columns: A to H, which is col_count=8)
     compressor_headers = [
