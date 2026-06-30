@@ -105,7 +105,8 @@ document.addEventListener('DOMContentLoaded', () => {
   // 4. Telemetry Forms Auto-Save Drafts
   const telemetryForms = [
     { id: 'power-readings-form', key: 'draft_power_readings' },
-    { id: 'water-readings-form', key: 'draft_water_readings' }
+    { id: 'water-readings-form', key: 'draft_water_readings' },
+    { id: 'genset-checklist-form', key: 'draft_genset_checklist' }
   ];
 
   telemetryForms.forEach(config => {
@@ -118,7 +119,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Check if the form is locked (saved for today)
     const isLocked = form.getAttribute('data-locked') === 'true';
     if (isLocked) {
-      form.querySelectorAll('input').forEach(input => {
+      form.querySelectorAll('input, select').forEach(input => {
         input.disabled = true;
       });
     }
@@ -153,7 +154,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Save draft on input
     form.addEventListener('input', () => {
       const formData = {};
-      const inputs = form.querySelectorAll('input.table-input');
+      const inputs = form.querySelectorAll('.table-input');
       inputs.forEach(input => {
         if (input.name) {
           formData[input.name] = input.value;
@@ -222,8 +223,10 @@ document.addEventListener('DOMContentLoaded', () => {
         // Set title
         if (type === 'power') {
           viewerTitle.innerHTML = '<i class="fa-solid fa-bolt" style="color: var(--color-warning);"></i> Power House Telemetry - Monthly View';
-        } else {
+        } else if (type === 'water') {
           viewerTitle.innerHTML = '<i class="fa-solid fa-droplet" style="color: var(--color-info);"></i> Water Valves Telemetry - Monthly View';
+        } else {
+          viewerTitle.innerHTML = '<i class="fa-solid fa-charging-station" style="color: var(--color-warning);"></i> Genset Checklist - Monthly View';
         }
         
         // Open modal
@@ -240,8 +243,10 @@ document.addEventListener('DOMContentLoaded', () => {
             // Set header label
             if (type === 'power') {
               viewerTitle.innerHTML = `<i class="fa-solid fa-bolt" style="color: var(--color-warning);"></i> Power House Telemetry - ${monthYearDisplay}`;
-            } else {
+            } else if (type === 'water') {
               viewerTitle.innerHTML = `<i class="fa-solid fa-droplet" style="color: var(--color-info);"></i> Water Valves Telemetry - ${monthYearDisplay}`;
+            } else {
+              viewerTitle.innerHTML = `<i class="fa-solid fa-charging-station" style="color: var(--color-warning);"></i> Genset Checklist - ${monthYearDisplay}`;
             }
             
             // Compute days of current month
@@ -322,7 +327,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 </tr>`;
               }
               html += `</tbody></table>`;
-            } else {
+            } else if (type === 'water') {
               // Build Water Valves Table
               html += `<table class="viewer-table">
                 <thead>
@@ -347,6 +352,94 @@ document.addEventListener('DOMContentLoaded', () => {
                   html += `<td>${val[`valve_${i}`] || '-'}</td>`;
                 }
                 html += `</tr>`;
+              }
+              html += `</tbody></table>`;
+            } else {
+              // Build Genset 1 Table
+              html += `<div style="padding: 16px;"><h3 style="font-size: 15px; margin-bottom: 12px; color: var(--text-primary); text-transform: uppercase; letter-spacing: 0.5px; border-left: 3px solid var(--color-warning); padding-left: 8px;">Generator Set 1</h3></div>`;
+              html += `<table class="viewer-table">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Mode</th>
+                    <th>Run Hrs</th>
+                    <th>Battery (V)</th>
+                    <th>Lube Oil</th>
+                    <th>Coolant</th>
+                    <th>Fuel (%)</th>
+                    <th>Volt R (V)</th>
+                    <th>Volt Y (V)</th>
+                    <th>Volt B (V)</th>
+                    <th>Freq (Hz)</th>
+                  </tr>
+                </thead>
+                <tbody>`;
+              
+              for (let d = 1; d <= daysInMonth; d++) {
+                const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+                const entry = dataList.find(e => e.date === dateStr);
+                const val = entry ? entry.data : {};
+                const dateObj = new Date(year, month, d);
+                const isSunday = dateObj.getDay() === 0;
+                const rowClass = isSunday ? 'class="sunday-row"' : '';
+                
+                html += `<tr ${rowClass}>
+                  <td style="font-weight: 600;">${dateStr}</td>
+                  <td>${val.g1_mode || '-'}</td>
+                  <td>${val.g1_run_hours || '-'}</td>
+                  <td>${val.g1_battery_voltage || '-'}</td>
+                  <td>${val.g1_lube_oil_level || '-'}</td>
+                  <td>${val.g1_coolant_level || '-'}</td>
+                  <td>${val.g1_fuel_level || '-'}</td>
+                  <td>${val.g1_voltage_r || '-'}</td>
+                  <td>${val.g1_voltage_y || '-'}</td>
+                  <td>${val.g1_voltage_b || '-'}</td>
+                  <td>${val.g1_frequency || '-'}</td>
+                </tr>`;
+              }
+              html += `</tbody></table>`;
+
+              // Build Genset 2 Table
+              html += `<div style="padding: 24px 16px 16px 16px;"><h3 style="font-size: 15px; margin-bottom: 12px; color: var(--text-primary); text-transform: uppercase; letter-spacing: 0.5px; border-left: 3px solid #ec4899; padding-left: 8px;">Generator Set 2</h3></div>`;
+              html += `<table class="viewer-table">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Mode</th>
+                    <th>Run Hrs</th>
+                    <th>Battery (V)</th>
+                    <th>Lube Oil</th>
+                    <th>Coolant</th>
+                    <th>Fuel (%)</th>
+                    <th>Volt R (V)</th>
+                    <th>Volt Y (V)</th>
+                    <th>Volt B (V)</th>
+                    <th>Freq (Hz)</th>
+                  </tr>
+                </thead>
+                <tbody>`;
+              
+              for (let d = 1; d <= daysInMonth; d++) {
+                const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+                const entry = dataList.find(e => e.date === dateStr);
+                const val = entry ? entry.data : {};
+                const dateObj = new Date(year, month, d);
+                const isSunday = dateObj.getDay() === 0;
+                const rowClass = isSunday ? 'class="sunday-row"' : '';
+                
+                html += `<tr ${rowClass}>
+                  <td style="font-weight: 600;">${dateStr}</td>
+                  <td>${val.g2_mode || '-'}</td>
+                  <td>${val.g2_run_hours || '-'}</td>
+                  <td>${val.g2_battery_voltage || '-'}</td>
+                  <td>${val.g2_lube_oil_level || '-'}</td>
+                  <td>${val.g2_coolant_level || '-'}</td>
+                  <td>${val.g2_fuel_level || '-'}</td>
+                  <td>${val.g2_voltage_r || '-'}</td>
+                  <td>${val.g2_voltage_y || '-'}</td>
+                  <td>${val.g2_voltage_b || '-'}</td>
+                  <td>${val.g2_frequency || '-'}</td>
+                </tr>`;
               }
               html += `</tbody></table>`;
             }

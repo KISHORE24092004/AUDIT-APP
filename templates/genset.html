@@ -1,0 +1,222 @@
+{% extends "base.html" %}
+
+{% block title %}Genset Checklist - Portal{% endblock %}
+
+{% block content %}
+<div class="dashboard-layout" style="max-width: 1000px;">
+  <!-- Header -->
+  <header class="dashboard-header">
+    <div>
+      <h1>Genset Daily Checklist</h1>
+      <p class="subtitle" style="margin-bottom: 0;">Submit daily backup generator status checklist logs.</p>
+    </div>
+    
+    <div style="display: flex; align-items: center; gap: 16px;">
+      <!-- Live Clock -->
+      <div class="live-clock">
+        <i class="fa-solid fa-clock" style="color: var(--color-info);"></i>
+        <span id="current-time"></span>
+      </div>
+
+      <div class="user-badge">
+        <div class="user-avatar">
+          {{ (user.username if user.username else user.email.split('@')[0])[0].upper() }}
+        </div>
+        <span class="user-email">@{{ user.username if user.username else user.email.split('@')[0] }}</span>
+      </div>
+      
+      <a href="{{ url_for('logout') }}" class="btn btn-secondary">
+        <i class="fa-solid fa-arrow-right-from-bracket"></i>
+        <span>Logout</span>
+      </a>
+    </div>
+  </header>
+
+  <!-- Breadcrumbs -->
+  <div class="breadcrumbs">
+    <a href="{{ url_for('dashboard') }}" class="breadcrumb-item"><i class="fa-solid fa-house"></i> Dashboard</a>
+    <span class="breadcrumb-separator"><i class="fa-solid fa-chevron-right"></i></span>
+    <a href="{{ url_for('daily') }}" class="breadcrumb-item">Daily</a>
+    <span class="breadcrumb-separator"><i class="fa-solid fa-chevron-right"></i></span>
+    <a href="{{ url_for('checklists') }}" class="breadcrumb-item">Checklists</a>
+    <span class="breadcrumb-separator"><i class="fa-solid fa-chevron-right"></i></span>
+    <span class="breadcrumb-active">Genset</span>
+  </div>
+
+  <form id="genset-checklist-form" action="{{ url_for('genset_checklist') }}" method="POST" data-date="{{ today_date }}" {% if locked %}data-locked="true"{% endif %}>
+    <div class="readings-container">
+      <div class="readings-grid">
+        
+        <!-- GENSET 1 -->
+        <div class="table-wrapper">
+          <h2 class="table-wrapper-title">Generator Set 1</h2>
+          <table class="readings-table">
+            <thead>
+              <tr>
+                <th style="width: 50%;">Parameters</th>
+                <th style="width: 50%;">Status / Value</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Mode (Auto/Manual):</td>
+                <td>
+                  <select name="g1_mode" class="table-input" style="background-color: #0b0b14; color: var(--text-primary); cursor: pointer;">
+                    <option value="" {% if data.get('g1_mode') == '' %}selected{% endif %}>-- Select --</option>
+                    <option value="Auto" {% if data.get('g1_mode') == 'Auto' %}selected{% endif %}>Auto</option>
+                    <option value="Manual" {% if data.get('g1_mode') == 'Manual' %}selected{% endif %}>Manual</option>
+                  </select>
+                </td>
+              </tr>
+              <tr>
+                <td>Run Hours (hrs):</td>
+                <td><input type="text" name="g1_run_hours" class="table-input" placeholder="e.g. 1245.8" value="{{ data.get('g1_run_hours', '') }}"></td>
+              </tr>
+              <tr>
+                <td>Battery Voltage (V):</td>
+                <td><input type="text" name="g1_battery_voltage" class="table-input" placeholder="e.g. 12.6" value="{{ data.get('g1_battery_voltage', '') }}"></td>
+              </tr>
+              <tr>
+                <td>Lube Oil Level (OK/Low):</td>
+                <td>
+                  <select name="g1_lube_oil_level" class="table-input" style="background-color: #0b0b14; color: var(--text-primary); cursor: pointer;">
+                    <option value="" {% if data.get('g1_lube_oil_level') == '' %}selected{% endif %}>-- Select --</option>
+                    <option value="OK" {% if data.get('g1_lube_oil_level') == 'OK' %}selected{% endif %}>OK</option>
+                    <option value="Low" {% if data.get('g1_lube_oil_level') == 'Low' %}selected{% endif %}>Low</option>
+                  </select>
+                </td>
+              </tr>
+              <tr>
+                <td>Coolant Level (OK/Low):</td>
+                <td>
+                  <select name="g1_coolant_level" class="table-input" style="background-color: #0b0b14; color: var(--text-primary); cursor: pointer;">
+                    <option value="" {% if data.get('g1_coolant_level') == '' %}selected{% endif %}>-- Select --</option>
+                    <option value="OK" {% if data.get('g1_coolant_level') == 'OK' %}selected{% endif %}>OK</option>
+                    <option value="Low" {% if data.get('g1_coolant_level') == 'Low' %}selected{% endif %}>Low</option>
+                  </select>
+                </td>
+              </tr>
+              <tr>
+                <td>Fuel Level (%):</td>
+                <td><input type="text" name="g1_fuel_level" class="table-input" placeholder="e.g. 85" value="{{ data.get('g1_fuel_level', '') }}"></td>
+              </tr>
+              <tr class="table-group-header">
+                <td>Voltages (Phase-Phase)</td>
+                <td></td>
+              </tr>
+              <tr>
+                <td style="padding-left: 24px;">R-Phase (V):</td>
+                <td><input type="text" name="g1_voltage_r" class="table-input" placeholder="e.g. 415" value="{{ data.get('g1_voltage_r', '') }}"></td>
+              </tr>
+              <tr>
+                <td style="padding-left: 24px;">Y-Phase (V):</td>
+                <td><input type="text" name="g1_voltage_y" class="table-input" placeholder="e.g. 412" value="{{ data.get('g1_voltage_y', '') }}"></td>
+              </tr>
+              <tr>
+                <td style="padding-left: 24px;">B-Phase (V):</td>
+                <td><input type="text" name="g1_voltage_b" class="table-input" placeholder="e.g. 414" value="{{ data.get('g1_voltage_b', '') }}"></td>
+              </tr>
+              <tr>
+                <td>Frequency (Hz):</td>
+                <td><input type="text" name="g1_frequency" class="table-input" placeholder="e.g. 50" value="{{ data.get('g1_frequency', '') }}"></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- GENSET 2 -->
+        <div class="table-wrapper">
+          <h2 class="table-wrapper-title">Generator Set 2</h2>
+          <table class="readings-table">
+            <thead>
+              <tr>
+                <th style="width: 50%;">Parameters</th>
+                <th style="width: 50%;">Status / Value</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Mode (Auto/Manual):</td>
+                <td>
+                  <select name="g2_mode" class="table-input" style="background-color: #0b0b14; color: var(--text-primary); cursor: pointer;">
+                    <option value="" {% if data.get('g2_mode') == '' %}selected{% endif %}>-- Select --</option>
+                    <option value="Auto" {% if data.get('g2_mode') == 'Auto' %}selected{% endif %}>Auto</option>
+                    <option value="Manual" {% if data.get('g2_mode') == 'Manual' %}selected{% endif %}>Manual</option>
+                  </select>
+                </td>
+              </tr>
+              <tr>
+                <td>Run Hours (hrs):</td>
+                <td><input type="text" name="g2_run_hours" class="table-input" placeholder="e.g. 984.2" value="{{ data.get('g2_run_hours', '') }}"></td>
+              </tr>
+              <tr>
+                <td>Battery Voltage (V):</td>
+                <td><input type="text" name="g2_battery_voltage" class="table-input" placeholder="e.g. 12.8" value="{{ data.get('g2_battery_voltage', '') }}"></td>
+              </tr>
+              <tr>
+                <td>Lube Oil Level (OK/Low):</td>
+                <td>
+                  <select name="g2_lube_oil_level" class="table-input" style="background-color: #0b0b14; color: var(--text-primary); cursor: pointer;">
+                    <option value="" {% if data.get('g2_lube_oil_level') == '' %}selected{% endif %}>-- Select --</option>
+                    <option value="OK" {% if data.get('g2_lube_oil_level') == 'OK' %}selected{% endif %}>OK</option>
+                    <option value="Low" {% if data.get('g2_lube_oil_level') == 'Low' %}selected{% endif %}>Low</option>
+                  </select>
+                </td>
+              </tr>
+              <tr>
+                <td>Coolant Level (OK/Low):</td>
+                <td>
+                  <select name="g2_coolant_level" class="table-input" style="background-color: #0b0b14; color: var(--text-primary); cursor: pointer;">
+                    <option value="" {% if data.get('g2_coolant_level') == '' %}selected{% endif %}>-- Select --</option>
+                    <option value="OK" {% if data.get('g2_coolant_level') == 'OK' %}selected{% endif %}>OK</option>
+                    <option value="Low" {% if data.get('g2_coolant_level') == 'Low' %}selected{% endif %}>Low</option>
+                  </select>
+                </td>
+              </tr>
+              <tr>
+                <td>Fuel Level (%):</td>
+                <td><input type="text" name="g2_fuel_level" class="table-input" placeholder="e.g. 90" value="{{ data.get('g2_fuel_level', '') }}"></td>
+              </tr>
+              <tr class="table-group-header">
+                <td>Voltages (Phase-Phase)</td>
+                <td></td>
+              </tr>
+              <tr>
+                <td style="padding-left: 24px;">R-Phase (V):</td>
+                <td><input type="text" name="g2_voltage_r" class="table-input" placeholder="e.g. 415" value="{{ data.get('g2_voltage_r', '') }}"></td>
+              </tr>
+              <tr>
+                <td style="padding-left: 24px;">Y-Phase (V):</td>
+                <td><input type="text" name="g2_voltage_y" class="table-input" placeholder="e.g. 413" value="{{ data.get('g2_voltage_y', '') }}"></td>
+              </tr>
+              <tr>
+                <td style="padding-left: 24px;">B-Phase (V):</td>
+                <td><input type="text" name="g2_voltage_b" class="table-input" placeholder="e.g. 416" value="{{ data.get('g2_voltage_b', '') }}"></td>
+              </tr>
+              <tr>
+                <td>Frequency (Hz):</td>
+                <td><input type="text" name="g2_frequency" class="table-input" placeholder="e.g. 50" value="{{ data.get('g2_frequency', '') }}"></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+
+      <!-- Action buttons -->
+      <div class="readings-actions">
+        {% if locked %}
+          <div class="locked-badge">
+            <i class="fa-solid fa-lock"></i> Checklist Saved & Locked for Today
+          </div>
+        {% else %}
+          <button type="submit" class="btn btn-save">
+            <i class="fa-solid fa-cloud-arrow-up"></i> Save Checklist
+          </button>
+        {% endif %}
+      </div>
+
+    </div>
+  </form>
+</div>
+{% endblock %}

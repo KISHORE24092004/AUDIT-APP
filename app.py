@@ -392,12 +392,62 @@ def api_water_readings():
     month_data = [entry for entry in history if entry['date'].startswith(current_month_prefix)]
     return {"status": "success", "data": month_data, "month_year": month_year_display}
 
+# JSON API Route for Genset readings
+@app.route('/api/readings/genset')
+@login_required
+def api_genset_readings():
+    current_date = datetime.utcnow() + timedelta(hours=5, minutes=30)
+    current_month_prefix = current_date.strftime("%Y-%m")
+    month_year_display = current_date.strftime("%B %Y")
+    history = get_all_historical_readings('genset')
+    month_data = [entry for entry in history if entry['date'].startswith(current_month_prefix)]
+    return {"status": "success", "data": month_data, "month_year": month_year_display}
+
 # Daily Dashboard (Readings / Checklists Navigation)
 @app.route('/dashboard/daily')
 @login_required
 def daily():
     user = session['user']
     return render_template('daily.html', user=user)
+
+# Checklists Category Dashboard
+@app.route('/dashboard/daily/checklists')
+@login_required
+def checklists():
+    user = session['user']
+    return render_template('checklists.html', user=user)
+
+# Genset Checklist Form
+@app.route('/dashboard/daily/checklists/genset', methods=['GET', 'POST'])
+@login_required
+def genset_checklist():
+    user = session['user']
+    today_date = get_current_ist_date()
+    
+    if request.method == 'POST':
+        # Check if already locked
+        existing_data = get_readings_data('genset', today_date)
+        if existing_data:
+            flash("Checklist for today is already locked and cannot be modified.", "warning")
+            return redirect(url_for('genset_checklist'))
+
+        # Collect genset parameters
+        fields = [
+            'g1_mode', 'g1_run_hours', 'g1_battery_voltage', 'g1_lube_oil_level', 'g1_coolant_level', 'g1_fuel_level', 'g1_voltage_r', 'g1_voltage_y', 'g1_voltage_b', 'g1_frequency',
+            'g2_mode', 'g2_run_hours', 'g2_battery_voltage', 'g2_lube_oil_level', 'g2_coolant_level', 'g2_fuel_level', 'g2_voltage_r', 'g2_voltage_y', 'g2_voltage_b', 'g2_frequency'
+        ]
+        data = {f: request.form.get(f, '').strip() for f in fields}
+        if set_readings_data('genset', today_date, data):
+            flash("Genset checklist saved successfully!", "success")
+            return redirect(url_for('genset_checklist'))
+        else:
+            flash("Failed to save checklist to database.", "danger")
+            return render_template('genset.html', user=user, data=data, today_date=today_date, locked=False)
+
+    # Fetch today's readings if already entered
+    data = get_readings_data('genset', today_date)
+    locked = True if data else False
+    return render_template('genset.html', user=user, data=data, today_date=today_date, locked=locked)
 
 # Readings Category Dashboard (Power / Water Selection)
 @app.route('/dashboard/daily/readings')
@@ -800,6 +850,148 @@ def export_water():
         mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         as_attachment=True,
         download_name="water_readings.xlsx"
+    )
+
+# Export Genset checklist readings to Excel
+@app.route('/dashboard/daily/checklists/genset/export')
+@admin_required
+def export_genset():
+    import io
+    import openpyxl
+    from flask import send_file
+    
+    # Get the current month and year in YYYY-MM format based on IST
+    current_month_prefix = get_current_ist_date()[:7] # "YYYY-MM"
+    
+    # Load template
+    template_path = os.path.join(os.path.dirname(__file__), "genset_readings.xlsx")
+    if not os.path.exists(template_path):
+        return "Template genset_readings.xlsx not found on server.", 404
+        
+    try:
+        wb = openpyxl.load_workbook(template_path)
+        ws = wb['genset_readings']
+        
+        # Clear data rows values and background fills
+        from openpyxl.styles import PatternFill
+        no_fill = PatternFill(fill_type=None)
+        yellow_fill = PatternFill(start_color="FFC000", end_color="FFC000", fill_type="solid")
+        
+        # Columns B to U (indices 2 to 21)
+        for r in range(4, 19):
+            for c in range(2, 22):
+                ws.cell(row=r, column=c).value = None
+                ws.cell(row=r, column=c).fill = no_fill
+        for r in range(21, 36):
+            for c in range(2, 22):
+                ws.cell(row=r, column=c).value = None
+                ws.cell(row=r, column=c).fill = no_fill
+                
+        # Calculate Sundays for the current calendar month
+        try:
+            year, month = map(int, current_month_prefix.split('-'))
+        except Exception:
+            year, month = 2026, 6
+            
+        sundays = []
+        for day in range(1, 32):
+            try:
+                dt = datetime(year, month, day)
+                if dt.weekday() == 6: # Sunday
+                    sundays.append(day)
+            except ValueError:
+                pass
+                
+        # Apply yellow fill to actual Sunday rows
+        for D in sundays:
+            if 1 <= D <= 15:
+                row_idx = D + 3
+            elif 16 <= D <= 30:
+                row_idx = D + 5
+            else:
+                row_idx = None
+                
+            if row_idx:
+                for c in range(1, 22):
+                    ws.cell(row=row_idx, column=c).fill = yellow_fill
+    except Exception as e:
+        app.logger.error(f"Error loading/clearing Excel template: {str(e)}")
+        return f"Error loading Excel template: {str(e)}", 500
+        
+    # Get all historical readings
+    history = get_all_historical_readings('genset')
+    
+    # Helper to safely parse numbers
+    def to_num(val):
+        if val == '' or val is None:
+            return None
+        try:
+            if '.' in val:
+                return float(val)
+            return int(val)
+        except ValueError:
+            return val
+            
+    # Populate the table cells
+    fields = [
+        'g1_mode', 'g1_run_hours', 'g1_battery_voltage', 'g1_lube_oil_level', 'g1_coolant_level', 'g1_fuel_level', 'g1_voltage_r', 'g1_voltage_y', 'g1_voltage_b', 'g1_frequency',
+        'g2_mode', 'g2_run_hours', 'g2_battery_voltage', 'g2_lube_oil_level', 'g2_coolant_level', 'g2_fuel_level', 'g2_voltage_r', 'g2_voltage_y', 'g2_voltage_b', 'g2_frequency'
+    ]
+    
+    for entry in history:
+        date_str = entry['date'] # "YYYY-MM-DD"
+        if not date_str.startswith(current_month_prefix):
+            continue
+            
+        data = entry['data']
+        try:
+            day_part = date_str.split('-')[2]
+            D = int(day_part)
+        except Exception:
+            continue
+            
+        if 1 <= D <= 15:
+            row_idx = D + 3
+        elif 16 <= D <= 30:
+            row_idx = D + 5
+        else:
+            row_idx = None
+            
+        if row_idx:
+            for idx, field in enumerate(fields):
+                val = data.get(field)
+                if 'mode' in field or 'level' in field:
+                    parsed_val = val if val else None
+                else:
+                    parsed_val = to_num(val)
+                ws.cell(row=row_idx, column=idx+2, value=parsed_val)
+                
+    # Fill in the Month/Year header cells (merged T1:U1, column T is 20)
+    try:
+        parts = current_month_prefix.split('-')
+        month_year_str = f"{parts[1]}/{parts[0]}"
+    except Exception:
+        month_year_str = ""
+        
+    t1_cell = ws.cell(row=1, column=20, value=f"DOC NO: R/MAI/GS\nMONTH/YEAR: {month_year_str}")
+    from openpyxl.styles import Alignment
+    current_align = t1_cell.alignment
+    t1_cell.alignment = Alignment(
+        horizontal=current_align.horizontal if current_align else 'left',
+        vertical=current_align.vertical if current_align else 'center',
+        wrap_text=True
+    )
+    
+    # Save the file to memory
+    file_stream = io.BytesIO()
+    wb.save(file_stream)
+    file_stream.seek(0)
+    
+    return send_file(
+        file_stream,
+        mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        as_attachment=True,
+        download_name="genset_readings.xlsx"
     )
 
 # Admin and User CRUD Management Routes

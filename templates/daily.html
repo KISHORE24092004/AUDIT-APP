@@ -49,12 +49,12 @@
       <span class="nav-card-title">Readings</span>
     </a>
 
-    <!-- Checklists Option (Disabled) -->
-    <a href="#" class="nav-card disabled" onclick="return false;">
-      <div class="nav-card-icon" style="color: var(--text-muted);">
+    <!-- Checklists Option -->
+    <a href="{{ url_for('checklists') }}" class="nav-card">
+      <div class="nav-card-icon">
         <i class="fa-solid fa-list-check"></i>
       </div>
-      <span class="nav-card-title" style="color: var(--text-muted);">Checklists</span>
+      <span class="nav-card-title">Checklists</span>
     </a>
   </div>
 </div>

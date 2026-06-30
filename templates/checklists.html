@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block title %}Checklists - Portal{% endblock %}
+
+{% block content %}
+<div class="dashboard-layout">
+  <!-- Header -->
+  <header class="dashboard-header">
+    <div>
+      <h1>Daily Checklists</h1>
+      <p class="subtitle" style="margin-bottom: 0;">Select the equipment checklist category to log status checks.</p>
+    </div>
+    
+    <div style="display: flex; align-items: center; gap: 16px;">
+      <!-- Live Clock -->
+      <div class="live-clock">
+        <i class="fa-solid fa-clock" style="color: var(--color-info);"></i>
+        <span id="current-time"></span>
+      </div>
+
+      <div class="user-badge">
+        <div class="user-avatar">
+          {{ (user.username if user.username else user.email.split('@')[0])[0].upper() }}
+        </div>
+        <span class="user-email">@{{ user.username if user.username else user.email.split('@')[0] }}</span>
+      </div>
+      
+      <a href="{{ url_for('logout') }}" class="btn btn-secondary">
+        <i class="fa-solid fa-arrow-right-from-bracket"></i>
+        <span>Logout</span>
+      </a>
+    </div>
+  </header>
+
+  <!-- Breadcrumbs -->
+  <div class="breadcrumbs">
+    <a href="{{ url_for('dashboard') }}" class="breadcrumb-item"><i class="fa-solid fa-house"></i> Dashboard</a>
+    <span class="breadcrumb-separator"><i class="fa-solid fa-chevron-right"></i></span>
+    <a href="{{ url_for('daily') }}" class="breadcrumb-item">Daily</a>
+    <span class="breadcrumb-separator"><i class="fa-solid fa-chevron-right"></i></span>
+    <span class="breadcrumb-active">Checklists</span>
+  </div>
+
+  <!-- Navigation Grid -->
+  <div class="nav-grid">
+    <!-- Genset Option -->
+    <a href="{{ url_for('genset_checklist') }}" class="nav-card">
+      <div class="nav-card-icon" style="color: var(--color-warning);">
+        <i class="fa-solid fa-charging-station"></i>
+      </div>
+      <span class="nav-card-title">Genset</span>
+    </a>
+
+    <!-- UPS Option (Disabled) -->
+    <a href="#" class="nav-card disabled" onclick="return false;">
+      <div class="nav-card-icon" style="color: var(--text-muted);">
+        <i class="fa-solid fa-car-battery"></i>
+      </div>
+      <span class="nav-card-title" style="color: var(--text-muted);">UPS</span>
+    </a>
+
+    <!-- Transformer Option (Disabled) -->
+    <a href="#" class="nav-card disabled" onclick="return false;">
+      <div class="nav-card-icon" style="color: var(--text-muted);">
+        <i class="fa-solid fa-tower-broadcast"></i>
+      </div>
+      <span class="nav-card-title" style="color: var(--text-muted);">Transformer</span>
+    </a>
+  </div>
+</div>
+{% endblock %}
