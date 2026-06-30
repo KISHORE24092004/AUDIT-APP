@@ -116,9 +116,8 @@ if __name__ == "__main__":
     ]
     generate_utility_template("genset", "R/MAI/GR", "Genset Telemetry Readings Log", genset_headers, 9)
     
-    # Compressor Readings (8 columns: A to H, which is col_count=8)
+    # Compressor Readings (7 columns: A to G, which is col_count=7)
     compressor_headers = [
-        "RUN HOURS", "LOAD HOURS", "DISCHARGE PRESS", "AIR TEMP",
-        "OIL TEMP", "MOTOR CURRENT", "OIL LEVEL"
+        "RUNNING HOURS", "LOAD HOURS", "MOTOR HOURS", "BAR", "TEMPERATURE", "CARETAKER SIGN"
     ]
-    generate_utility_template("compressor", "R/MAI/CR", "Compressor Telemetry Readings Log", compressor_headers, 8)
+    generate_utility_template("compressor", "R/MAI/CR", "Compressor Telemetry Readings Log", compressor_headers, 7)

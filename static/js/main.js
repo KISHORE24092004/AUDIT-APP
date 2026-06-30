@@ -434,13 +434,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 <thead>
                   <tr>
                     <th>Date</th>
-                    <th>Run Hours</th>
+                    <th>Running Hours</th>
                     <th>Load Hours</th>
-                    <th>Discharge Press</th>
-                    <th>Air Temp</th>
-                    <th>Oil Temp</th>
-                    <th>Motor Current</th>
-                    <th>Oil Level</th>
+                    <th>Motor Hours</th>
+                    <th>Bar</th>
+                    <th>Temperature</th>
+                    <th>Caretaker Sign</th>
                   </tr>
                 </thead>
                 <tbody>`;
@@ -457,11 +456,10 @@ document.addEventListener('DOMContentLoaded', () => {
                   <td style="font-weight: 600; min-width: 100px;">${dateStr}</td>
                   <td>${val.run_hours || '-'}</td>
                   <td>${val.load_hours || '-'}</td>
-                  <td>${val.discharge_press || '-'}</td>
-                  <td>${val.air_temp || '-'}</td>
-                  <td>${val.oil_temp || '-'}</td>
-                  <td>${val.motor_current || '-'}</td>
-                  <td>${val.oil_level || '-'}</td>
+                  <td>${val.motor_hours || '-'}</td>
+                  <td>${val.bar || '-'}</td>
+                  <td>${val.temp || '-'}</td>
+                  <td>${val.caretaker_sign || '-'}</td>
                 </tr>`;
               }
               html += `</tbody></table></div>`;

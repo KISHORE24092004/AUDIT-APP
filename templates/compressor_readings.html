@@ -58,10 +58,9 @@
             {% set fields = [
               ("run_hours", "Running Hours", "hrs", "number", "step='0.1' min='0'"),
               ("load_hours", "Load Hours", "hrs", "number", "step='0.1' min='0'"),
-              ("discharge_press", "Discharge Air Pressure", "bar", "number", "step='0.1' min='0'"),
-              ("air_temp", "Air Temperature", "°C", "number", "step='1' min='0'"),
-              ("oil_temp", "Oil Temperature", "°C", "number", "step='1' min='0'"),
-              ("motor_current", "Motor Current", "Amps", "number", "step='0.1' min='0'")
+              ("motor_hours", "Motor Hours", "hrs", "number", "step='0.1' min='0'"),
+              ("bar", "Bar", "bar", "number", "step='0.1' min='0'"),
+              ("temp", "Temperature", "°C", "number", "step='1' min='0'")
             ] %}
             
             {% for name, label, unit, type, attrs in fields %}
@@ -74,13 +73,9 @@
             {% endfor %}
             
             <tr>
-              <td style="font-weight: 500;">Oil Level Status</td>
+              <td style="font-weight: 500;">Caretaker Sign</td>
               <td>
-                <select name="oil_level" class="table-input" style="background: rgba(255,255,255,0.05); color: var(--text-primary); border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; padding: 4px 8px; width: 100%;">
-                  <option value="" {% if data.get('oil_level') == '' %}selected{% endif %}>Select status</option>
-                  <option value="Normal" {% if data.get('oil_level') == 'Normal' %}selected{% endif %}>Normal</option>
-                  <option value="Low" {% if data.get('oil_level') == 'Low' %}selected{% endif %}>Low</option>
-                </select>
+                <input type="text" name="caretaker_sign" class="table-input" value="{{ data.get('caretaker_sign', '') }}" placeholder="Enter caretaker name">
               </td>
             </tr>
           </tbody>

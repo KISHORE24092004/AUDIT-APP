@@ -535,8 +535,8 @@ def compressor_readings_entry():
             return redirect(url_for('compressor_readings_entry'))
             
         fields = [
-            'run_hours', 'load_hours', 'discharge_press', 'air_temp',
-            'oil_temp', 'motor_current', 'oil_level'
+            'run_hours', 'load_hours', 'motor_hours', 'bar',
+            'temp', 'caretaker_sign'
         ]
         data = {f: request.form.get(f, '').strip() for f in fields}
         
@@ -1095,8 +1095,8 @@ def export_genset_readings():
 @admin_required
 def export_compressor_readings():
     compressor_fields = [
-        'run_hours', 'load_hours', 'discharge_press', 'air_temp',
-        'oil_temp', 'motor_current', 'oil_level'
+        'run_hours', 'load_hours', 'motor_hours', 'bar',
+        'temp', 'caretaker_sign'
     ]
     return export_readings_generic("compressor", "R/MAI/CR", compressor_fields)
 
