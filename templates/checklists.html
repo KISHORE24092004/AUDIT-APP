@@ -43,12 +43,20 @@
 
   <!-- Navigation Grid -->
   <div class="nav-grid">
-    <!-- Genset Option -->
-    <a href="{{ url_for('genset_checklist') }}" class="nav-card">
+    <!-- Genset-1 (125kW) Option -->
+    <a href="{{ url_for('genset_checklist', genset_id=1) }}" class="nav-card">
       <div class="nav-card-icon" style="color: var(--color-warning);">
         <i class="fa-solid fa-charging-station"></i>
       </div>
-      <span class="nav-card-title">Genset</span>
+      <span class="nav-card-title">Genset-1 (125kW)</span>
+    </a>
+
+    <!-- Genset-2 (160kW) Option -->
+    <a href="{{ url_for('genset_checklist', genset_id=2) }}" class="nav-card">
+      <div class="nav-card-icon" style="color: #f59e0b;">
+        <i class="fa-solid fa-charging-station"></i>
+      </div>
+      <span class="nav-card-title">Genset-2 (160kW)</span>
     </a>
 
     <!-- UPS Option (Disabled) -->

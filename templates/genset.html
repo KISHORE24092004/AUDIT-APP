@@ -1,14 +1,14 @@
 {% extends "base.html" %}
 
-{% block title %}Genset Checklist - Portal{% endblock %}
+{% block title %}{{ genset_name }} Checklist - Portal{% endblock %}
 
 {% block content %}
-<div class="dashboard-layout" style="max-width: 1000px;">
+<div class="dashboard-layout" style="max-width: 800px;">
   <!-- Header -->
   <header class="dashboard-header">
     <div>
-      <h1>Genset Daily Checklist</h1>
-      <p class="subtitle" style="margin-bottom: 0;">Submit daily backup generator status checklist logs.</p>
+      <h1>{{ genset_name }} Daily Checklist</h1>
+      <p class="subtitle" style="margin-bottom: 0;">Submit daily operational check logs for {{ genset_name }} ({{ capacity }}).</p>
     </div>
     
     <div style="display: flex; align-items: center; gap: 16px;">
@@ -40,20 +40,19 @@
     <span class="breadcrumb-separator"><i class="fa-solid fa-chevron-right"></i></span>
     <a href="{{ url_for('checklists') }}" class="breadcrumb-item">Checklists</a>
     <span class="breadcrumb-separator"><i class="fa-solid fa-chevron-right"></i></span>
-    <span class="breadcrumb-active">Genset</span>
+    <span class="breadcrumb-active">{{ genset_name }}</span>
   </div>
 
-  <form id="genset-checklist-form" action="{{ url_for('genset_checklist') }}" method="POST" data-date="{{ today_date }}" {% if locked %}data-locked="true"{% endif %}>
+  <form id="genset{{ genset_id }}-checklist-form" action="{{ url_for('genset_checklist', genset_id=genset_id) }}" method="POST" data-date="{{ today_date }}" {% if locked %}data-locked="true"{% endif %}>
     <div class="readings-container">
       <div class="table-wrapper" style="width: 100%; margin-bottom: 24px;">
-        <h2 class="table-wrapper-title">22-Point Operational Maintenance Checklist</h2>
+        <h2 class="table-wrapper-title">22-Point Maintenance Check - {{ genset_name }} ({{ capacity }})</h2>
         <table class="readings-table">
           <thead>
             <tr>
-              <th style="width: 8%; text-align: center;">S.No</th>
-              <th style="width: 52%;">Checklist Operational Question</th>
-              <th style="width: 20%; text-align: center;">Genset 1</th>
-              <th style="width: 20%; text-align: center;">Genset 2</th>
+              <th style="width: 10%; text-align: center;">S.No</th>
+              <th style="width: 70%;">Checklist Operational Question</th>
+              <th style="width: 20%; text-align: center;">Status (OK)</th>
             </tr>
           </thead>
           <tbody>
@@ -89,13 +88,7 @@
                 <td>{{ question }}</td>
                 <td style="text-align: center;">
                   <label class="checkbox-wrapper" style="justify-content: center; padding: 0; display: inline-flex;">
-                    <input type="checkbox" name="g1_q{{ idx }}" class="table-input" value="OK" {% if data.get('g1_q' ~ idx) == 'OK' %}checked{% endif %}>
-                    <span class="custom-checkbox"></span>
-                  </label>
-                </td>
-                <td style="text-align: center;">
-                  <label class="checkbox-wrapper" style="justify-content: center; padding: 0; display: inline-flex;">
-                    <input type="checkbox" name="g2_q{{ idx }}" class="table-input" value="OK" {% if data.get('g2_q' ~ idx) == 'OK' %}checked{% endif %}>
+                    <input type="checkbox" name="q{{ idx }}" class="table-input" value="OK" {% if data.get('q' ~ idx) == 'OK' %}checked{% endif %}>
                     <span class="custom-checkbox"></span>
                   </label>
                 </td>

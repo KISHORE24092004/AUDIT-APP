@@ -81,21 +81,41 @@
       </div>
     </div>
 
-    <!-- Genset Checklist Excel Card -->
+    <!-- Genset-1 (125kW) Excel Card -->
     <div class="nav-card" style="height: auto; align-items: center; justify-content: space-between; padding: 24px;">
       <div class="nav-card-icon" style="color: var(--color-warning); margin: 0 0 8px 0;">
         <i class="fa-solid fa-file-excel"></i>
       </div>
-      <span class="nav-card-title" style="margin-bottom: 4px;">Genset Checklist Excel</span>
-      <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 16px; text-align: center;">Monthly backup generator status checklist log.</p>
+      <span class="nav-card-title" style="margin-bottom: 4px;">Genset-1 (125kW) Excel</span>
+      <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 16px; text-align: center;">Monthly Genset-1 125kW checklist log.</p>
       
       <div style="display: flex; gap: 8px; width: 100%; justify-content: center; flex-wrap: wrap;">
         {% if user.role == 'admin' %}
-        <a href="{{ url_for('export_genset') }}" class="btn" style="width: auto; padding: 8px 16px; font-size: 13px; background-color: var(--color-primary); display: inline-flex; align-items: center; gap: 6px; text-decoration: none; height: auto;">
+        <a href="{{ url_for('export_genset1') }}" class="btn" style="width: auto; padding: 8px 16px; font-size: 13px; background-color: var(--color-primary); display: inline-flex; align-items: center; gap: 6px; text-decoration: none; height: auto;">
           <i class="fa-solid fa-download"></i> Download
         </a>
         {% endif %}
-        <button class="btn btn-secondary btn-view-doc" data-type="genset" style="width: auto; padding: 8px 16px; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; height: auto;">
+        <button class="btn btn-secondary btn-view-doc" data-type="genset1" style="width: auto; padding: 8px 16px; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; height: auto;">
+          <i class="fa-solid fa-eye"></i> View Online
+        </button>
+      </div>
+    </div>
+
+    <!-- Genset-2 (160kW) Excel Card -->
+    <div class="nav-card" style="height: auto; align-items: center; justify-content: space-between; padding: 24px;">
+      <div class="nav-card-icon" style="color: #f59e0b; margin: 0 0 8px 0;">
+        <i class="fa-solid fa-file-excel"></i>
+      </div>
+      <span class="nav-card-title" style="margin-bottom: 4px;">Genset-2 (160kW) Excel</span>
+      <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 16px; text-align: center;">Monthly Genset-2 160kW checklist log.</p>
+      
+      <div style="display: flex; gap: 8px; width: 100%; justify-content: center; flex-wrap: wrap;">
+        {% if user.role == 'admin' %}
+        <a href="{{ url_for('export_genset2') }}" class="btn" style="width: auto; padding: 8px 16px; font-size: 13px; background-color: var(--color-primary); display: inline-flex; align-items: center; gap: 6px; text-decoration: none; height: auto;">
+          <i class="fa-solid fa-download"></i> Download
+        </a>
+        {% endif %}
+        <button class="btn btn-secondary btn-view-doc" data-type="genset2" style="width: auto; padding: 8px 16px; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; height: auto;">
           <i class="fa-solid fa-eye"></i> View Online
         </button>
       </div>

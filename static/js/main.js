@@ -106,7 +106,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const telemetryForms = [
     { id: 'power-readings-form', key: 'draft_power_readings' },
     { id: 'water-readings-form', key: 'draft_water_readings' },
-    { id: 'genset-checklist-form', key: 'draft_genset_checklist' }
+    { id: 'genset1-checklist-form', key: 'draft_genset1_checklist' },
+    { id: 'genset2-checklist-form', key: 'draft_genset2_checklist' }
   ];
 
   telemetryForms.forEach(config => {
@@ -247,8 +248,10 @@ document.addEventListener('DOMContentLoaded', () => {
           viewerTitle.innerHTML = '<i class="fa-solid fa-bolt" style="color: var(--color-warning);"></i> Power House Telemetry - Monthly View';
         } else if (type === 'water') {
           viewerTitle.innerHTML = '<i class="fa-solid fa-droplet" style="color: var(--color-info);"></i> Water Valves Telemetry - Monthly View';
+        } else if (type === 'genset1') {
+          viewerTitle.innerHTML = '<i class="fa-solid fa-charging-station" style="color: var(--color-warning);"></i> Genset-1 (125kW) Checklist - Monthly View';
         } else {
-          viewerTitle.innerHTML = '<i class="fa-solid fa-charging-station" style="color: var(--color-warning);"></i> Genset Checklist - Monthly View';
+          viewerTitle.innerHTML = '<i class="fa-solid fa-charging-station" style="color: #f59e0b;"></i> Genset-2 (160kW) Checklist - Monthly View';
         }
         
         // Open modal
@@ -267,8 +270,10 @@ document.addEventListener('DOMContentLoaded', () => {
               viewerTitle.innerHTML = `<i class="fa-solid fa-bolt" style="color: var(--color-warning);"></i> Power House Telemetry - ${monthYearDisplay}`;
             } else if (type === 'water') {
               viewerTitle.innerHTML = `<i class="fa-solid fa-droplet" style="color: var(--color-info);"></i> Water Valves Telemetry - ${monthYearDisplay}`;
+            } else if (type === 'genset1') {
+              viewerTitle.innerHTML = `<i class="fa-solid fa-charging-station" style="color: var(--color-warning);"></i> Genset-1 (125kW) Checklist - ${monthYearDisplay}`;
             } else {
-              viewerTitle.innerHTML = `<i class="fa-solid fa-charging-station" style="color: var(--color-warning);"></i> Genset Checklist - ${monthYearDisplay}`;
+              viewerTitle.innerHTML = `<i class="fa-solid fa-charging-station" style="color: #f59e0b;"></i> Genset-2 (160kW) Checklist - ${monthYearDisplay}`;
             }
             
             // Compute days of current month
@@ -377,8 +382,9 @@ document.addEventListener('DOMContentLoaded', () => {
               }
               html += `</tbody></table>`;
             } else {
-              // Build Genset 1 Table
-              html += `<div style="padding: 16px;"><h3 style="font-size: 15px; margin-bottom: 12px; color: var(--text-primary); text-transform: uppercase; letter-spacing: 0.5px; border-left: 3px solid var(--color-warning); padding-left: 8px;">Generator Set 1</h3></div>`;
+              const label = type === 'genset1' ? 'Genset-1 (125kW)' : 'Genset-2 (160kW)';
+              const titleColor = type === 'genset1' ? 'var(--color-warning)' : '#f59e0b';
+              html += `<div style="padding: 16px;"><h3 style="font-size: 15px; margin-bottom: 12px; color: var(--text-primary); text-transform: uppercase; letter-spacing: 0.5px; border-left: 3px solid ${titleColor}; padding-left: 8px;">${label}</h3></div>`;
               html += `<div style="overflow-x: auto; width: 100%;"><table class="viewer-table">
                 <thead>
                   <tr>
@@ -401,39 +407,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 html += `<tr ${rowClass}>
                   <td style="font-weight: 600; min-width: 100px;">${dateStr}</td>`;
                 for (let i = 1; i <= 22; i++) {
-                  const checkVal = val[`g1_q${i}`] || '-';
-                  const displaySymbol = checkVal === 'OK' ? '<span style="color: var(--color-success); font-weight: bold;">✔</span>' : '-';
-                  html += `<td style="text-align: center;">${displaySymbol}</td>`;
-                }
-                html += `</tr>`;
-              }
-              html += `</tbody></table></div>`;
-
-              // Build Genset 2 Table
-              html += `<div style="padding: 24px 16px 16px 16px;"><h3 style="font-size: 15px; margin-bottom: 12px; color: var(--text-primary); text-transform: uppercase; letter-spacing: 0.5px; border-left: 3px solid #ec4899; padding-left: 8px;">Generator Set 2</h3></div>`;
-              html += `<div style="overflow-x: auto; width: 100%;"><table class="viewer-table">
-                <thead>
-                  <tr>
-                    <th>Date</th>`;
-              for (let i = 1; i <= 22; i++) {
-                html += `<th title="Question ${i}">Q${i}</th>`;
-              }
-              html += `</tr>
-                </thead>
-                <tbody>`;
-              
-              for (let d = 1; d <= daysInMonth; d++) {
-                const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-                const entry = dataList.find(e => e.date === dateStr);
-                const val = entry ? entry.data : {};
-                const dateObj = new Date(year, month, d);
-                const isSunday = dateObj.getDay() === 0;
-                const rowClass = isSunday ? 'class="sunday-row"' : '';
-                
-                html += `<tr ${rowClass}>
-                  <td style="font-weight: 600; min-width: 100px;">${dateStr}</td>`;
-                for (let i = 1; i <= 22; i++) {
-                  const checkVal = val[`g2_q${i}`] || '-';
+                  const checkVal = val[`q${i}`] || '-';
                   const displaySymbol = checkVal === 'OK' ? '<span style="color: var(--color-success); font-weight: bold;">✔</span>' : '-';
                   html += `<td style="text-align: center;">${displaySymbol}</td>`;
                 }
