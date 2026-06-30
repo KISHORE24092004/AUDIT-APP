@@ -433,10 +433,20 @@ def genset_checklist():
 
         # Collect genset parameters
         fields = [
-            'g1_mode', 'g1_run_hours', 'g1_battery_voltage', 'g1_lube_oil_level', 'g1_coolant_level', 'g1_fuel_level', 'g1_voltage_r', 'g1_voltage_y', 'g1_voltage_b', 'g1_frequency',
-            'g2_mode', 'g2_run_hours', 'g2_battery_voltage', 'g2_lube_oil_level', 'g2_coolant_level', 'g2_fuel_level', 'g2_voltage_r', 'g2_voltage_y', 'g2_voltage_b', 'g2_frequency'
+            'g1_run_hours', 'g1_battery_voltage', 'g1_fuel_level', 'g1_voltage_r', 'g1_voltage_y', 'g1_voltage_b', 'g1_frequency',
+            'g2_run_hours', 'g2_battery_voltage', 'g2_fuel_level', 'g2_voltage_r', 'g2_voltage_y', 'g2_voltage_b', 'g2_frequency'
         ]
         data = {f: request.form.get(f, '').strip() for f in fields}
+        
+        # Checkbox mappings
+        data['g1_mode'] = 'Auto' if request.form.get('g1_mode') == 'Auto' else 'Manual'
+        data['g1_lube_oil_level'] = 'OK' if request.form.get('g1_lube_oil_level') == 'OK' else 'Low'
+        data['g1_coolant_level'] = 'OK' if request.form.get('g1_coolant_level') == 'OK' else 'Low'
+        
+        data['g2_mode'] = 'Auto' if request.form.get('g2_mode') == 'Auto' else 'Manual'
+        data['g2_lube_oil_level'] = 'OK' if request.form.get('g2_lube_oil_level') == 'OK' else 'Low'
+        data['g2_coolant_level'] = 'OK' if request.form.get('g2_coolant_level') == 'OK' else 'Low'
+        
         if set_readings_data('genset', today_date, data):
             flash("Genset checklist saved successfully!", "success")
             return redirect(url_for('genset_checklist'))

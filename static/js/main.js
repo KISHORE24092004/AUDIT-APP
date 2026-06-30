@@ -143,7 +143,11 @@ document.addEventListener('DOMContentLoaded', () => {
         Object.keys(draft).forEach(name => {
           const input = form.querySelector(`[name="${name}"]`);
           if (input && draft[name] !== undefined) {
-            input.value = draft[name];
+            if (input.type === 'checkbox') {
+              input.checked = draft[name] === true;
+            } else {
+              input.value = draft[name];
+            }
           }
         });
       }
@@ -152,12 +156,30 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Save draft on input
+    form.addEventListener('change', () => {
+      const formData = {};
+      const inputs = form.querySelectorAll('.table-input');
+      inputs.forEach(input => {
+        if (input.name) {
+          if (input.type === 'checkbox') {
+            formData[input.name] = input.checked;
+          } else {
+            formData[input.name] = input.value;
+          }
+        }
+      });
+      localStorage.setItem(storageKey, JSON.stringify(formData));
+    });
     form.addEventListener('input', () => {
       const formData = {};
       const inputs = form.querySelectorAll('.table-input');
       inputs.forEach(input => {
         if (input.name) {
-          formData[input.name] = input.value;
+          if (input.type === 'checkbox') {
+            formData[input.name] = input.checked;
+          } else {
+            formData[input.name] = input.value;
+          }
         }
       });
       localStorage.setItem(storageKey, JSON.stringify(formData));

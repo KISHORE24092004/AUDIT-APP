@@ -61,11 +61,11 @@
               <tr>
                 <td>Mode (Auto/Manual):</td>
                 <td>
-                  <select name="g1_mode" class="table-input" style="background-color: #0b0b14; color: var(--text-primary); cursor: pointer;">
-                    <option value="" {% if data.get('g1_mode') == '' %}selected{% endif %}>-- Select --</option>
-                    <option value="Auto" {% if data.get('g1_mode') == 'Auto' %}selected{% endif %}>Auto</option>
-                    <option value="Manual" {% if data.get('g1_mode') == 'Manual' %}selected{% endif %}>Manual</option>
-                  </select>
+                  <label class="checkbox-wrapper">
+                    <input type="checkbox" name="g1_mode" class="table-input" value="Auto" {% if data.get('g1_mode') == 'Auto' %}checked{% endif %}>
+                    <span class="custom-checkbox"></span>
+                    <span style="font-size: 11px; color: var(--text-muted);">Auto Mode Active</span>
+                  </label>
                 </td>
               </tr>
               <tr>
@@ -79,21 +79,21 @@
               <tr>
                 <td>Lube Oil Level (OK/Low):</td>
                 <td>
-                  <select name="g1_lube_oil_level" class="table-input" style="background-color: #0b0b14; color: var(--text-primary); cursor: pointer;">
-                    <option value="" {% if data.get('g1_lube_oil_level') == '' %}selected{% endif %}>-- Select --</option>
-                    <option value="OK" {% if data.get('g1_lube_oil_level') == 'OK' %}selected{% endif %}>OK</option>
-                    <option value="Low" {% if data.get('g1_lube_oil_level') == 'Low' %}selected{% endif %}>Low</option>
-                  </select>
+                  <label class="checkbox-wrapper">
+                    <input type="checkbox" name="g1_lube_oil_level" class="table-input" value="OK" {% if data.get('g1_lube_oil_level') == 'OK' %}checked{% endif %}>
+                    <span class="custom-checkbox"></span>
+                    <span style="font-size: 11px; color: var(--text-muted);">Lube Oil Level OK</span>
+                  </label>
                 </td>
               </tr>
               <tr>
                 <td>Coolant Level (OK/Low):</td>
                 <td>
-                  <select name="g1_coolant_level" class="table-input" style="background-color: #0b0b14; color: var(--text-primary); cursor: pointer;">
-                    <option value="" {% if data.get('g1_coolant_level') == '' %}selected{% endif %}>-- Select --</option>
-                    <option value="OK" {% if data.get('g1_coolant_level') == 'OK' %}selected{% endif %}>OK</option>
-                    <option value="Low" {% if data.get('g1_coolant_level') == 'Low' %}selected{% endif %}>Low</option>
-                  </select>
+                  <label class="checkbox-wrapper">
+                    <input type="checkbox" name="g1_coolant_level" class="table-input" value="OK" {% if data.get('g1_coolant_level') == 'OK' %}checked{% endif %}>
+                    <span class="custom-checkbox"></span>
+                    <span style="font-size: 11px; color: var(--text-muted);">Coolant Level OK</span>
+                  </label>
                 </td>
               </tr>
               <tr>
@@ -138,11 +138,11 @@
               <tr>
                 <td>Mode (Auto/Manual):</td>
                 <td>
-                  <select name="g2_mode" class="table-input" style="background-color: #0b0b14; color: var(--text-primary); cursor: pointer;">
-                    <option value="" {% if data.get('g2_mode') == '' %}selected{% endif %}>-- Select --</option>
-                    <option value="Auto" {% if data.get('g2_mode') == 'Auto' %}selected{% endif %}>Auto</option>
-                    <option value="Manual" {% if data.get('g2_mode') == 'Manual' %}selected{% endif %}>Manual</option>
-                  </select>
+                  <label class="checkbox-wrapper">
+                    <input type="checkbox" name="g2_mode" class="table-input" value="Auto" {% if data.get('g2_mode') == 'Auto' %}checked{% endif %}>
+                    <span class="custom-checkbox"></span>
+                    <span style="font-size: 11px; color: var(--text-muted);">Auto Mode Active</span>
+                  </label>
                 </td>
               </tr>
               <tr>
@@ -156,21 +156,21 @@
               <tr>
                 <td>Lube Oil Level (OK/Low):</td>
                 <td>
-                  <select name="g2_lube_oil_level" class="table-input" style="background-color: #0b0b14; color: var(--text-primary); cursor: pointer;">
-                    <option value="" {% if data.get('g2_lube_oil_level') == '' %}selected{% endif %}>-- Select --</option>
-                    <option value="OK" {% if data.get('g2_lube_oil_level') == 'OK' %}selected{% endif %}>OK</option>
-                    <option value="Low" {% if data.get('g2_lube_oil_level') == 'Low' %}selected{% endif %}>Low</option>
-                  </select>
+                  <label class="checkbox-wrapper">
+                    <input type="checkbox" name="g2_lube_oil_level" class="table-input" value="OK" {% if data.get('g2_lube_oil_level') == 'OK' %}checked{% endif %}>
+                    <span class="custom-checkbox"></span>
+                    <span style="font-size: 11px; color: var(--text-muted);">Lube Oil Level OK</span>
+                  </label>
                 </td>
               </tr>
               <tr>
                 <td>Coolant Level (OK/Low):</td>
                 <td>
-                  <select name="g2_coolant_level" class="table-input" style="background-color: #0b0b14; color: var(--text-primary); cursor: pointer;">
-                    <option value="" {% if data.get('g2_coolant_level') == '' %}selected{% endif %}>-- Select --</option>
-                    <option value="OK" {% if data.get('g2_coolant_level') == 'OK' %}selected{% endif %}>OK</option>
-                    <option value="Low" {% if data.get('g2_coolant_level') == 'Low' %}selected{% endif %}>Low</option>
-                  </select>
+                  <label class="checkbox-wrapper">
+                    <input type="checkbox" name="g2_coolant_level" class="table-input" value="OK" {% if data.get('g2_coolant_level') == 'OK' %}checked{% endif %}>
+                    <span class="custom-checkbox"></span>
+                    <span style="font-size: 11px; color: var(--text-muted);">Coolant Level OK</span>
+                  </label>
                 </td>
               </tr>
               <tr>
