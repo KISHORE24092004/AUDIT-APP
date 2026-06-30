@@ -355,6 +355,7 @@ h1 {
   font-weight: 700;
   font-size: 14px;
   color: #fff;
+  flex-shrink: 0;
 }
 
 .user-email {
@@ -668,7 +669,7 @@ h1 {
     margin-bottom: 20px;
   }
   
-  .dashboard-header div {
+  .dashboard-header > div {
     width: 100%;
   }
 
