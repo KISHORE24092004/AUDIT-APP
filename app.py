@@ -412,6 +412,26 @@ def get_genset_api_readings(genset_id):
     month_data = [entry for entry in history if entry['date'].startswith(current_month_prefix)]
     return {"status": "success", "data": month_data, "month_year": month_year_display}
 
+# JSON API Route for Genset readings
+@app.route('/api/readings/genset_readings')
+@login_required
+def api_genset_readings_data():
+    return get_readings_api_generic("genset_readings")
+
+# JSON API Route for Compressor readings
+@app.route('/api/readings/compressor_readings')
+@login_required
+def api_compressor_readings_data():
+    return get_readings_api_generic("compressor_readings")
+
+def get_readings_api_generic(db_key):
+    current_date = datetime.utcnow() + timedelta(hours=5, minutes=30)
+    current_month_prefix = current_date.strftime("%Y-%m")
+    month_year_display = current_date.strftime("%B %Y")
+    history = get_all_historical_readings(db_key)
+    month_data = [entry for entry in history if entry['date'].startswith(current_month_prefix)]
+    return {"status": "success", "data": month_data, "month_year": month_year_display}
+
 # Daily Dashboard (Readings / Checklists Navigation)
 @app.route('/dashboard/daily')
 @login_required
@@ -468,6 +488,68 @@ def genset_checklist_by_id(genset_id):
 def readings():
     user = session['user']
     return render_template('readings.html', user=user)
+
+# Genset Readings Entry Form
+@app.route('/dashboard/daily/readings/genset_readings', methods=['GET', 'POST'])
+@login_required
+def genset_readings_entry():
+    user = session['user']
+    today_date = get_current_ist_date()
+    db_key = 'genset_readings'
+    
+    if request.method == 'POST':
+        existing_data = get_readings_data(db_key, today_date)
+        if existing_data:
+            flash("Genset readings for today are already locked.", "warning")
+            return redirect(url_for('genset_readings_entry'))
+            
+        fields = [
+            'run_hours', 'coolant_temp', 'lube_oil_press', 'fuel_level',
+            'battery_volt', 'volt_r', 'volt_y', 'volt_b', 'freq'
+        ]
+        data = {f: request.form.get(f, '').strip() for f in fields}
+        
+        if set_readings_data(db_key, today_date, data):
+            flash("Genset readings saved successfully!", "success")
+            return redirect(url_for('genset_readings_entry'))
+        else:
+            flash("Failed to save readings to database.", "danger")
+            return render_template('genset_readings.html', user=user, data=data, today_date=today_date, locked=False)
+            
+    data = get_readings_data(db_key, today_date)
+    locked = True if data else False
+    return render_template('genset_readings.html', user=user, data=data, today_date=today_date, locked=locked)
+
+# Compressor Readings Entry Form
+@app.route('/dashboard/daily/readings/compressor_readings', methods=['GET', 'POST'])
+@login_required
+def compressor_readings_entry():
+    user = session['user']
+    today_date = get_current_ist_date()
+    db_key = 'compressor_readings'
+    
+    if request.method == 'POST':
+        existing_data = get_readings_data(db_key, today_date)
+        if existing_data:
+            flash("Compressor readings for today are already locked.", "warning")
+            return redirect(url_for('compressor_readings_entry'))
+            
+        fields = [
+            'run_hours', 'load_hours', 'discharge_press', 'air_temp',
+            'oil_temp', 'motor_current', 'oil_level'
+        ]
+        data = {f: request.form.get(f, '').strip() for f in fields}
+        
+        if set_readings_data(db_key, today_date, data):
+            flash("Compressor readings saved successfully!", "success")
+            return redirect(url_for('compressor_readings_entry'))
+        else:
+            flash("Failed to save readings to database.", "danger")
+            return render_template('compressor_readings.html', user=user, data=data, today_date=today_date, locked=False)
+            
+    data = get_readings_data(db_key, today_date)
+    locked = True if data else False
+    return render_template('compressor_readings.html', user=user, data=data, today_date=today_date, locked=locked)
 
 # Power House 1 & 2 Table Form
 @app.route('/dashboard/daily/readings/power', methods=['GET', 'POST'])
@@ -996,6 +1078,158 @@ def export_genset_generic(genset_id, capacity_str):
         mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         as_attachment=True,
         download_name=f"genset{genset_id}_readings.xlsx"
+    )
+
+# Export Genset readings to Excel
+@app.route('/dashboard/daily/readings/genset_readings/export')
+@admin_required
+def export_genset_readings():
+    genset_fields = [
+        'run_hours', 'coolant_temp', 'lube_oil_press', 'fuel_level',
+        'battery_volt', 'volt_r', 'volt_y', 'volt_b', 'freq'
+    ]
+    return export_readings_generic("genset", "R/MAI/GR", genset_fields)
+
+# Export Compressor readings to Excel
+@app.route('/dashboard/daily/readings/compressor_readings/export')
+@admin_required
+def export_compressor_readings():
+    compressor_fields = [
+        'run_hours', 'load_hours', 'discharge_press', 'air_temp',
+        'oil_temp', 'motor_current', 'oil_level'
+    ]
+    return export_readings_generic("compressor", "R/MAI/CR", compressor_fields)
+
+def export_readings_generic(utility_name, doc_no, fields_list):
+    import io
+    import openpyxl
+    from flask import send_file
+    
+    current_month_prefix = get_current_ist_date()[:7] # "YYYY-MM"
+    template_name = f"{utility_name}_readings_log.xlsx"
+    template_path = os.path.join(os.path.dirname(__file__), template_name)
+    
+    if not os.path.exists(template_path):
+        return f"Template {template_name} not found on server.", 404
+        
+    try:
+        wb = openpyxl.load_workbook(template_path)
+        ws = wb[f'{utility_name}_readings']
+        
+        from openpyxl.styles import PatternFill
+        no_fill = PatternFill(fill_type=None)
+        yellow_fill = PatternFill(start_color="FFC000", end_color="FFC000", fill_type="solid")
+        
+        col_count = len(fields_list) + 1
+        
+        # Clear columns B to last column (indices 2 to col_count)
+        for r in range(4, 19):
+            for c in range(2, col_count + 1):
+                ws.cell(row=r, column=c).value = None
+                ws.cell(row=r, column=c).fill = no_fill
+        for r in range(21, 36):
+            for c in range(2, col_count + 1):
+                ws.cell(row=r, column=c).value = None
+                ws.cell(row=r, column=c).fill = no_fill
+                
+        # Calculate Sundays
+        try:
+            year, month = map(int, current_month_prefix.split('-'))
+        except Exception:
+            year, month = 2026, 6
+            
+        sundays = []
+        for day in range(1, 32):
+            try:
+                dt = datetime(year, month, day)
+                if dt.weekday() == 6:
+                    sundays.append(day)
+            except ValueError:
+                pass
+                
+        # Apply yellow fill to Sunday rows
+        for D in sundays:
+            if 1 <= D <= 15:
+                row_idx = D + 3
+            elif 16 <= D <= 30:
+                row_idx = D + 5
+            else:
+                row_idx = None
+                
+            if row_idx:
+                for c in range(1, col_count + 1):
+                    ws.cell(row=row_idx, column=c).fill = yellow_fill
+    except Exception as e:
+        app.logger.error(f"Error loading/clearing Excel template: {str(e)}")
+        return f"Error loading Excel template: {str(e)}", 500
+        
+    # Get historical readings
+    history = get_all_historical_readings(f"{utility_name}_readings")
+    
+    # Helper to safely parse numbers
+    def to_num(val):
+        if val == '' or val is None:
+            return None
+        try:
+            if '.' in val:
+                return float(val)
+            return int(val)
+        except ValueError:
+            return val
+
+    # Populate cells
+    for entry in history:
+        date_str = entry['date']
+        if not date_str.startswith(current_month_prefix):
+            continue
+            
+        data = entry['data']
+        try:
+            D = int(date_str.split('-')[2])
+        except Exception:
+            continue
+            
+        if 1 <= D <= 15:
+            row_idx = D + 3
+        elif 16 <= D <= 30:
+            row_idx = D + 5
+        else:
+            row_idx = None
+            
+        if row_idx:
+            for idx, field in enumerate(fields_list):
+                val = data.get(field)
+                if field == 'oil_level':
+                    parsed_val = val if val else None
+                else:
+                    parsed_val = to_num(val)
+                ws.cell(row=row_idx, column=idx+2, value=parsed_val)
+                
+    # Fill in Month/Year header cell (merged at last column, row 1)
+    try:
+        parts = current_month_prefix.split('-')
+        month_year_str = f"{parts[1]}/{parts[0]}"
+    except Exception:
+        month_year_str = ""
+        
+    doc_cell = ws.cell(row=1, column=col_count, value=f"DOC NO: {doc_no}\nMONTH/YEAR: {month_year_str}")
+    from openpyxl.styles import Alignment
+    current_align = doc_cell.alignment
+    doc_cell.alignment = Alignment(
+        horizontal=current_align.horizontal if current_align else 'left',
+        vertical=current_align.vertical if current_align else 'center',
+        wrap_text=True
+    )
+    
+    file_stream = io.BytesIO()
+    wb.save(file_stream)
+    file_stream.seek(0)
+    
+    return send_file(
+        file_stream,
+        mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        as_attachment=True,
+        download_name=f"{utility_name}_readings.xlsx"
     )
 
 # Admin and User CRUD Management Routes

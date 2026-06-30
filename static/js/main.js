@@ -107,7 +107,9 @@ document.addEventListener('DOMContentLoaded', () => {
     { id: 'power-readings-form', key: 'draft_power_readings' },
     { id: 'water-readings-form', key: 'draft_water_readings' },
     { id: 'genset-checklist-form-1', key: 'draft_genset1_checklist' },
-    { id: 'genset-checklist-form-2', key: 'draft_genset2_checklist' }
+    { id: 'genset-checklist-form-2', key: 'draft_genset2_checklist' },
+    { id: 'genset-readings-form', key: 'draft_genset_readings' },
+    { id: 'compressor-readings-form', key: 'draft_compressor_readings' }
   ];
 
   telemetryForms.forEach(config => {
@@ -250,8 +252,12 @@ document.addEventListener('DOMContentLoaded', () => {
           viewerTitle.innerHTML = '<i class="fa-solid fa-droplet" style="color: var(--color-info);"></i> Water Valves Telemetry - Monthly View';
         } else if (type === 'genset1') {
           viewerTitle.innerHTML = '<i class="fa-solid fa-charging-station" style="color: var(--color-warning);"></i> Genset-1 (125kW) Checklist - Monthly View';
-        } else {
+        } else if (type === 'genset2') {
           viewerTitle.innerHTML = '<i class="fa-solid fa-charging-station" style="color: #ec4899;"></i> Genset-2 (160kW) Checklist - Monthly View';
+        } else if (type === 'genset_readings') {
+          viewerTitle.innerHTML = '<i class="fa-solid fa-charging-station" style="color: var(--color-warning);"></i> Genset Telemetry Readings - Monthly View';
+        } else {
+          viewerTitle.innerHTML = '<i class="fa-solid fa-wind" style="color: var(--color-success);"></i> Compressor Telemetry Readings - Monthly View';
         }
         
         // Open modal
@@ -272,8 +278,12 @@ document.addEventListener('DOMContentLoaded', () => {
               viewerTitle.innerHTML = `<i class="fa-solid fa-droplet" style="color: var(--color-info);"></i> Water Valves Telemetry - ${monthYearDisplay}`;
             } else if (type === 'genset1') {
               viewerTitle.innerHTML = `<i class="fa-solid fa-charging-station" style="color: var(--color-warning);"></i> Genset-1 (125kW) Checklist - ${monthYearDisplay}`;
-            } else {
+            } else if (type === 'genset2') {
               viewerTitle.innerHTML = `<i class="fa-solid fa-charging-station" style="color: #ec4899;"></i> Genset-2 (160kW) Checklist - ${monthYearDisplay}`;
+            } else if (type === 'genset_readings') {
+              viewerTitle.innerHTML = `<i class="fa-solid fa-charging-station" style="color: var(--color-warning);"></i> Genset Telemetry Readings - ${monthYearDisplay}`;
+            } else {
+              viewerTitle.innerHTML = `<i class="fa-solid fa-wind" style="color: var(--color-success);"></i> Compressor Telemetry Readings - ${monthYearDisplay}`;
             }
             
             // Compute days of current month
@@ -381,6 +391,82 @@ document.addEventListener('DOMContentLoaded', () => {
                 html += `</tr>`;
               }
               html += `</tbody></table>`;
+            } else if (type === 'genset_readings') {
+              html += `<div style="overflow-x: auto; width: 100%;"><table class="viewer-table">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Run Hours</th>
+                    <th>Coolant Temp</th>
+                    <th>Lube Oil Press</th>
+                    <th>Fuel Level</th>
+                    <th>Battery Volt</th>
+                    <th>Volt R</th>
+                    <th>Volt Y</th>
+                    <th>Volt B</th>
+                    <th>Freq</th>
+                  </tr>
+                </thead>
+                <tbody>`;
+              
+              for (let d = 1; d <= daysInMonth; d++) {
+                const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+                const entry = dataList.find(e => e.date === dateStr);
+                const val = entry ? entry.data : {};
+                const dateObj = new Date(year, month, d);
+                const isSunday = dateObj.getDay() === 0;
+                const rowClass = isSunday ? 'class="sunday-row"' : '';
+                
+                html += `<tr ${rowClass}>
+                  <td style="font-weight: 600; min-width: 100px;">${dateStr}</td>
+                  <td>${val.run_hours || '-'}</td>
+                  <td>${val.coolant_temp || '-'}</td>
+                  <td>${val.lube_oil_press || '-'}</td>
+                  <td>${val.fuel_level || '-'}</td>
+                  <td>${val.battery_volt || '-'}</td>
+                  <td>${val.volt_r || '-'}</td>
+                  <td>${val.volt_y || '-'}</td>
+                  <td>${val.volt_b || '-'}</td>
+                  <td>${val.freq || '-'}</td>
+                </tr>`;
+              }
+              html += `</tbody></table></div>`;
+            } else if (type === 'compressor_readings') {
+              html += `<div style="overflow-x: auto; width: 100%;"><table class="viewer-table">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Run Hours</th>
+                    <th>Load Hours</th>
+                    <th>Discharge Press</th>
+                    <th>Air Temp</th>
+                    <th>Oil Temp</th>
+                    <th>Motor Current</th>
+                    <th>Oil Level</th>
+                  </tr>
+                </thead>
+                <tbody>`;
+              
+              for (let d = 1; d <= daysInMonth; d++) {
+                const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+                const entry = dataList.find(e => e.date === dateStr);
+                const val = entry ? entry.data : {};
+                const dateObj = new Date(year, month, d);
+                const isSunday = dateObj.getDay() === 0;
+                const rowClass = isSunday ? 'class="sunday-row"' : '';
+                
+                html += `<tr ${rowClass}>
+                  <td style="font-weight: 600; min-width: 100px;">${dateStr}</td>
+                  <td>${val.run_hours || '-'}</td>
+                  <td>${val.load_hours || '-'}</td>
+                  <td>${val.discharge_press || '-'}</td>
+                  <td>${val.air_temp || '-'}</td>
+                  <td>${val.oil_temp || '-'}</td>
+                  <td>${val.motor_current || '-'}</td>
+                  <td>${val.oil_level || '-'}</td>
+                </tr>`;
+              }
+              html += `</tbody></table></div>`;
             } else {
               const gid = type === 'genset1' ? 1 : 2;
               const cap = type === 'genset1' ? '125kW' : '160kW';

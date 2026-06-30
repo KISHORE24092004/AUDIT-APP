@@ -58,6 +58,22 @@
       </div>
       <span class="nav-card-title">Water</span>
     </a>
+
+    <!-- Genset Readings Option -->
+    <a href="{{ url_for('genset_readings_entry') }}" class="nav-card">
+      <div class="nav-card-icon" style="color: var(--color-warning);">
+        <i class="fa-solid fa-charging-station"></i>
+      </div>
+      <span class="nav-card-title" style="text-align: center;">Genset Readings</span>
+    </a>
+
+    <!-- Compressor Readings Option -->
+    <a href="{{ url_for('compressor_readings_entry') }}" class="nav-card">
+      <div class="nav-card-icon" style="color: var(--color-success);">
+        <i class="fa-solid fa-wind"></i>
+      </div>
+      <span class="nav-card-title" style="text-align: center;">Compressor Readings</span>
+    </a>
   </div>
 </div>
 {% endblock %}
