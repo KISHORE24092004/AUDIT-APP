@@ -365,10 +365,32 @@ def dashboard():
 
 # Documents Dashboard (Excel/CSV Export List)
 @app.route('/dashboard/documents')
-@admin_required
+@login_required
 def documents():
     user = session['user']
     return render_template('documents.html', user=user)
+
+# JSON API Route for Power readings
+@app.route('/api/readings/power')
+@login_required
+def api_power_readings():
+    current_date = datetime.utcnow() + timedelta(hours=5, minutes=30)
+    current_month_prefix = current_date.strftime("%Y-%m")
+    month_year_display = current_date.strftime("%B %Y")
+    history = get_all_historical_readings('power')
+    month_data = [entry for entry in history if entry['date'].startswith(current_month_prefix)]
+    return {"status": "success", "data": month_data, "month_year": month_year_display}
+
+# JSON API Route for Water readings
+@app.route('/api/readings/water')
+@login_required
+def api_water_readings():
+    current_date = datetime.utcnow() + timedelta(hours=5, minutes=30)
+    current_month_prefix = current_date.strftime("%Y-%m")
+    month_year_display = current_date.strftime("%B %Y")
+    history = get_all_historical_readings('water')
+    month_data = [entry for entry in history if entry['date'].startswith(current_month_prefix)]
+    return {"status": "success", "data": month_data, "month_year": month_year_display}
 
 # Daily Dashboard (Readings / Checklists Navigation)
 @app.route('/dashboard/daily')
@@ -459,7 +481,7 @@ def water_readings():
 
 # Export Power House readings to CSV/Excel
 @app.route('/dashboard/daily/readings/power/export')
-@admin_required
+@login_required
 def export_power():
     import io
     import openpyxl
@@ -642,7 +664,7 @@ def export_power():
 
 # Export Water Valve readings to CSV/Excel
 @app.route('/dashboard/daily/readings/water/export')
-@admin_required
+@login_required
 def export_water():
     import io
     import openpyxl

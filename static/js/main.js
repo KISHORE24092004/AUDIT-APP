@@ -188,4 +188,190 @@ document.addEventListener('DOMContentLoaded', () => {
     updateClock();
     setInterval(updateClock, 1000);
   }
+
+  // 6. Online Document Viewer Modal Window
+  const btnViewDocs = document.querySelectorAll('.btn-view-doc');
+  const modalViewer = document.getElementById('modal-viewer');
+  const btnCloseViewer = document.getElementById('btn-close-viewer');
+  const viewerTitle = document.getElementById('viewer-title');
+  const viewerContent = document.getElementById('viewer-content');
+
+  if (modalViewer && btnCloseViewer && btnViewDocs.length > 0) {
+    // Helper to format values
+    const formatCell = (val, pf) => {
+      if (val === undefined && pf === undefined) return '-';
+      if (!val && !pf) return '-';
+      if (pf !== undefined) {
+        return `${val || '-'} / ${pf || '-'}`;
+      }
+      return val || '-';
+    };
+
+    btnViewDocs.forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const type = btn.getAttribute('data-type');
+        
+        // Show loader
+        viewerContent.innerHTML = `
+          <div id="viewer-loader" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px; color: var(--text-secondary); gap: 12px;">
+            <i class="fa-solid fa-circle-notch fa-spin" style="font-size: 28px; color: var(--color-primary);"></i>
+            <span>Loading telemetry data...</span>
+          </div>
+        `;
+        
+        // Set title
+        if (type === 'power') {
+          viewerTitle.innerHTML = '<i class="fa-solid fa-bolt" style="color: var(--color-warning);"></i> Power House Telemetry - Monthly View';
+        } else {
+          viewerTitle.innerHTML = '<i class="fa-solid fa-droplet" style="color: var(--color-info);"></i> Water Valves Telemetry - Monthly View';
+        }
+        
+        // Open modal
+        modalViewer.style.display = 'flex';
+        
+        try {
+          const res = await fetch(`/api/readings/${type}`);
+          const resJson = await res.json();
+          
+          if (resJson.status === 'success') {
+            const dataList = resJson.data || [];
+            const monthYearDisplay = resJson.month_year || '';
+            
+            // Set header label
+            if (type === 'power') {
+              viewerTitle.innerHTML = `<i class="fa-solid fa-bolt" style="color: var(--color-warning);"></i> Power House Telemetry - ${monthYearDisplay}`;
+            } else {
+              viewerTitle.innerHTML = `<i class="fa-solid fa-droplet" style="color: var(--color-info);"></i> Water Valves Telemetry - ${monthYearDisplay}`;
+            }
+            
+            // Compute days of current month
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = now.getMonth();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            
+            let html = '';
+            
+            if (type === 'power') {
+              // Build Power House 1 Table
+              html += `<div style="padding: 16px;"><h3 style="font-size: 15px; margin-bottom: 12px; color: var(--text-primary); text-transform: uppercase; letter-spacing: 0.5px; border-left: 3px solid var(--color-primary); padding-left: 8px;">Power House 1</h3></div>`;
+              html += `<table class="viewer-table">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Solar 75 (kW/PF)</th>
+                    <th>Solar 33 (kW/PF)</th>
+                    <th>Line Import (kW/PF)</th>
+                    <th>Line Export (kW/PF)</th>
+                    <th>Weld Import (kW/PF)</th>
+                    <th>Weld Export (kW/PF)</th>
+                  </tr>
+                </thead>
+                <tbody>`;
+              
+              for (let d = 1; d <= daysInMonth; d++) {
+                const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+                const entry = dataList.find(e => e.date === dateStr);
+                const val = entry ? entry.data : {};
+                const dateObj = new Date(year, month, d);
+                const isSunday = dateObj.getDay() === 0;
+                const rowClass = isSunday ? 'class="sunday-row"' : '';
+                
+                html += `<tr ${rowClass}>
+                  <td style="font-weight: 600;">${dateStr}</td>
+                  <td>${formatCell(val.ph1_solar_75, val.ph1_solar_75_pf)}</td>
+                  <td>${formatCell(val.ph1_solar_33, val.ph1_solar_33_pf)}</td>
+                  <td>${formatCell(val.ph1_line_import, val.ph1_line_import_pf)}</td>
+                  <td>${formatCell(val.ph1_line_export, val.ph1_line_export_pf)}</td>
+                  <td>${formatCell(val.ph1_weld_import, val.ph1_weld_import_pf)}</td>
+                  <td>${formatCell(val.ph1_weld_export, val.ph1_weld_export_pf)}</td>
+                </tr>`;
+              }
+              html += `</tbody></table>`;
+              
+              // Build Power House 2 Table
+              html += `<div style="padding: 24px 16px 16px 16px;"><h3 style="font-size: 15px; margin-bottom: 12px; color: var(--text-primary); text-transform: uppercase; letter-spacing: 0.5px; border-left: 3px solid #ec4899; padding-left: 8px;">Power House 2</h3></div>`;
+              html += `<table class="viewer-table">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Solar 90 (kW/PF)</th>
+                    <th>Line Import (kW/PF)</th>
+                    <th>Line Export (kW/PF)</th>
+                    <th>Weld Import (kW/PF)</th>
+                    <th>Weld Export (kW/PF)</th>
+                  </tr>
+                </thead>
+                <tbody>`;
+              
+              for (let d = 1; d <= daysInMonth; d++) {
+                const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+                const entry = dataList.find(e => e.date === dateStr);
+                const val = entry ? entry.data : {};
+                const dateObj = new Date(year, month, d);
+                const isSunday = dateObj.getDay() === 0;
+                const rowClass = isSunday ? 'class="sunday-row"' : '';
+                
+                html += `<tr ${rowClass}>
+                  <td style="font-weight: 600;">${dateStr}</td>
+                  <td>${formatCell(val.ph2_solar_90, val.ph2_solar_90_pf)}</td>
+                  <td>${formatCell(val.ph2_line_import, val.ph2_line_import_pf)}</td>
+                  <td>${formatCell(val.ph2_line_export, val.ph2_line_export_pf)}</td>
+                  <td>${formatCell(val.ph2_weld_import, val.ph2_weld_import_pf)}</td>
+                  <td>${formatCell(val.ph2_weld_export, val.ph2_weld_export_pf)}</td>
+                </tr>`;
+              }
+              html += `</tbody></table>`;
+            } else {
+              // Build Water Valves Table
+              html += `<table class="viewer-table">
+                <thead>
+                  <tr>
+                    <th>Date</th>`;
+              for (let i = 1; i <= 16; i++) {
+                html += `<th>V${i}</th>`;
+              }
+              html += `</tr></thead><tbody>`;
+              
+              for (let d = 1; d <= daysInMonth; d++) {
+                const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+                const entry = dataList.find(e => e.date === dateStr);
+                const val = entry ? entry.data : {};
+                const dateObj = new Date(year, month, d);
+                const isSunday = dateObj.getDay() === 0;
+                const rowClass = isSunday ? 'class="sunday-row"' : '';
+                
+                html += `<tr ${rowClass}>
+                  <td style="font-weight: 600; min-width: 100px;">${dateStr}</td>`;
+                for (let i = 1; i <= 16; i++) {
+                  html += `<td>${val[`valve_${i}`] || '-'}</td>`;
+                }
+                html += `</tr>`;
+              }
+              html += `</tbody></table>`;
+            }
+            
+            viewerContent.innerHTML = html;
+          } else {
+            viewerContent.innerHTML = `<div style="padding: 24px; text-align: center; color: var(--color-danger);"><i class="fa-solid fa-triangle-exclamation"></i> Failed to retrieve telemetry records.</div>`;
+          }
+        } catch (err) {
+          viewerContent.innerHTML = `<div style="padding: 24px; text-align: center; color: var(--color-danger);"><i class="fa-solid fa-triangle-exclamation"></i> Error loading data: ${err.message}</div>`;
+        }
+      });
+    });
+
+    // Close Viewer Modal
+    const closeViewer = () => {
+      modalViewer.style.display = 'none';
+      viewerContent.innerHTML = '';
+    };
+    
+    btnCloseViewer.addEventListener('click', closeViewer);
+    window.addEventListener('click', (e) => {
+      if (e.target === modalViewer) {
+        closeViewer();
+      }
+    });
+  }
 });
