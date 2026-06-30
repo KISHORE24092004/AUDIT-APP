@@ -50,9 +50,11 @@
       <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 16px; text-align: center;">Monthly solar & line readings spreadsheet.</p>
       
       <div style="display: flex; gap: 8px; width: 100%; justify-content: center; flex-wrap: wrap;">
+        {% if user.role == 'admin' %}
         <a href="{{ url_for('export_power') }}" class="btn" style="width: auto; padding: 8px 16px; font-size: 13px; background-color: var(--color-primary); display: inline-flex; align-items: center; gap: 6px; text-decoration: none; height: auto;">
           <i class="fa-solid fa-download"></i> Download
         </a>
+        {% endif %}
         <button class="btn btn-secondary btn-view-doc" data-type="power" style="width: auto; padding: 8px 16px; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; height: auto;">
           <i class="fa-solid fa-eye"></i> View Online
         </button>
@@ -68,9 +70,11 @@
       <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 16px; text-align: center;">Monthly flow logs template for all 16 valves.</p>
       
       <div style="display: flex; gap: 8px; width: 100%; justify-content: center; flex-wrap: wrap;">
+        {% if user.role == 'admin' %}
         <a href="{{ url_for('export_water') }}" class="btn" style="width: auto; padding: 8px 16px; font-size: 13px; background-color: var(--color-primary); display: inline-flex; align-items: center; gap: 6px; text-decoration: none; height: auto;">
           <i class="fa-solid fa-download"></i> Download
         </a>
+        {% endif %}
         <button class="btn btn-secondary btn-view-doc" data-type="water" style="width: auto; padding: 8px 16px; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; height: auto;">
           <i class="fa-solid fa-eye"></i> View Online
         </button>

@@ -481,7 +481,7 @@ def water_readings():
 
 # Export Power House readings to CSV/Excel
 @app.route('/dashboard/daily/readings/power/export')
-@login_required
+@admin_required
 def export_power():
     import io
     import openpyxl
@@ -664,7 +664,7 @@ def export_power():
 
 # Export Water Valve readings to CSV/Excel
 @app.route('/dashboard/daily/readings/water/export')
-@login_required
+@admin_required
 def export_water():
     import io
     import openpyxl
