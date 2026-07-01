@@ -483,6 +483,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 <thead>
                   <tr>
                     <th>Date</th>
+                    <th>Meals Waste (KG)</th>
+                    <th>Vegetable Waste (KG)</th>
                     <th>Caretaker Sign</th>
                   </tr>
                 </thead>
@@ -498,6 +500,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 html += `<tr ${rowClass}>
                   <td style="font-weight: 600; min-width: 100px;">${dateStr}</td>
+                  <td>${val.meals_waste || '-'}</td>
+                  <td>${val.vegetable_waste || '-'}</td>
                   <td>${val.caretaker_sign || '-'}</td>
                 </tr>`;
               }

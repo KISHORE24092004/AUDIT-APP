@@ -660,7 +660,7 @@ def canteen_waste_entry():
             flash("Canteen Waste logs for today are already locked.", "warning")
             return redirect(url_for('canteen_waste_entry'))
             
-        fields = ['caretaker_sign']
+        fields = ['meals_waste', 'vegetable_waste', 'caretaker_sign']
         data = {f: request.form.get(f, '').strip() for f in fields}
         
         if set_readings_data(db_key, today_date, data):
@@ -1247,7 +1247,7 @@ def export_compressor2_readings():
 @app.route('/dashboard/daily/readings/canteen_waste/export')
 @admin_required
 def export_canteen_waste():
-    canteen_fields = ['caretaker_sign']
+    canteen_fields = ['meals_waste', 'vegetable_waste', 'caretaker_sign']
     return export_readings_generic("canteen_waste", "R/MAI/CW", canteen_fields)
 
 def export_readings_generic(utility_name, doc_no, fields_list):
@@ -1314,7 +1314,8 @@ def export_readings_generic(utility_name, doc_no, fields_list):
         return f"Error loading Excel template: {str(e)}", 500
         
     # Get historical readings
-    history = get_all_historical_readings(f"{utility_name}_readings")
+    db_key = f"{utility_name}_readings" if "waste" not in utility_name else utility_name
+    history = get_all_historical_readings(db_key)
     
     # Helper to safely parse numbers
     def to_num(val):

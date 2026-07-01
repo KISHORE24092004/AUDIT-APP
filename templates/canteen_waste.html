@@ -56,6 +56,18 @@
           </thead>
           <tbody>
             <tr>
+              <td style="font-weight: 500;">Meals Waste (KG)</td>
+              <td>
+                <input type="number" name="meals_waste" class="table-input" value="{{ data.get('meals_waste', '') }}" placeholder="Enter weight in kg" step="0.1" min="0">
+              </td>
+            </tr>
+            <tr>
+              <td style="font-weight: 500;">Vegetable Waste (KG)</td>
+              <td>
+                <input type="number" name="vegetable_waste" class="table-input" value="{{ data.get('vegetable_waste', '') }}" placeholder="Enter weight in kg" step="0.1" min="0">
+              </td>
+            </tr>
+            <tr>
               <td style="font-weight: 500;">Caretaker Sign</td>
               <td>
                 <input type="text" name="caretaker_sign" class="table-input" value="{{ data.get('caretaker_sign', '') }}" placeholder="Enter caretaker name" required>

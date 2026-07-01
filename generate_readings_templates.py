@@ -134,6 +134,6 @@ if __name__ == "__main__":
     
     # Canteen Waste
     canteen_headers = [
-        "CARETAKER SIGN"
+        "MEALS WASTE (KG)", "VEGETABLE WASTE (KG)", "CARETAKER SIGN"
     ]
-    generate_utility_template("canteen_waste", "R/MAI/CW", "Canteen Waste Log", canteen_headers, 2)
+    generate_utility_template("canteen_waste", "R/MAI/CW", "Canteen Waste Log", canteen_headers, 4)
