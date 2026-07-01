@@ -1084,111 +1084,98 @@ def export_genset2():
 
 def export_genset_generic(genset_id, capacity_str):
     import io
-    import openpyxl
+    from docx import Document
     from flask import send_file
     
     # Get the current month and year in YYYY-MM format based on IST
     current_month_prefix = get_current_ist_date()[:7] # "YYYY-MM"
     db_key = f"genset{genset_id}"
-    template_name = f"genset{genset_id}_readings.xlsx"
+    template_name = f"GENSET-{genset_id} DAILY CHECKLIST.docx"
     template_path = os.path.join(os.path.dirname(__file__), template_name)
     
     if not os.path.exists(template_path):
         return f"Template {template_name} not found on server.", 404
         
     try:
-        wb = openpyxl.load_workbook(template_path)
-        ws = wb[f'genset{genset_id}_readings']
+        doc = Document(template_path)
+        table = doc.tables[0]
         
-        # Clear data rows values and background fills
-        from openpyxl.styles import PatternFill
-        no_fill = PatternFill(fill_type=None)
-        yellow_fill = PatternFill(start_color="FFC000", end_color="FFC000", fill_type="solid")
-        
-        # Columns B to W (indices 2 to 23)
-        for r in range(4, 19):
-            for c in range(2, 24):
-                ws.cell(row=r, column=c).value = None
-                ws.cell(row=r, column=c).fill = no_fill
-        for r in range(21, 36):
-            for c in range(2, 24):
-                ws.cell(row=r, column=c).value = None
-                ws.cell(row=r, column=c).fill = no_fill
-                
-        # Calculate Sundays for the current calendar month
+        # Determine month/year string
         try:
-            year, month = map(int, current_month_prefix.split('-'))
+            parts = current_month_prefix.split('-')
+            month_year_str = f"{parts[1]}/{parts[0]}"
         except Exception:
-            year, month = 2026, 6
+            month_year_str = ""
             
-        sundays = []
-        for day in range(1, 32):
-            try:
-                dt = datetime(year, month, day)
-                if dt.weekday() == 6: # Sunday
-                    sundays.append(day)
-            except ValueError:
-                pass
-                
-        # Apply yellow fill to actual Sunday rows
-        for D in sundays:
-            if 1 <= D <= 15:
-                row_idx = D + 3
-            elif 16 <= D <= 30:
-                row_idx = D + 5
-            else:
-                row_idx = None
-                
-            if row_idx:
-                for c in range(1, 24):
-                    ws.cell(row=row_idx, column=c).fill = yellow_fill
-    except Exception as e:
-        app.logger.error(f"Error loading/clearing Excel template: {str(e)}")
-        return f"Error loading Excel template: {str(e)}", 500
-        
-    # Get all historical readings
-    history = get_all_historical_readings(db_key)
-    
-    # Populate the table cells
-    for entry in history:
-        date_str = entry['date'] # "YYYY-MM-DD"
-        if not date_str.startswith(current_month_prefix):
-            continue
-            
-        data = entry['data']
-        try:
-            day_part = date_str.split('-')[2]
-            D = int(day_part)
-        except Exception:
-            continue
-            
-        if 1 <= D <= 15:
-            row_idx = D + 3
-        elif 16 <= D <= 30:
-            row_idx = D + 5
+        # Set DATE header in cell (0, 1)
+        p_header = table.rows[0].cells[1].paragraphs[0]
+        if p_header.runs:
+            p_header.runs[0].text = f"DATE: {month_year_str}"
+            for r in p_header.runs[1:]:
+                r.text = ""
         else:
-            row_idx = None
+            p_header.text = f"DATE: {month_year_str}"
             
-        if row_idx:
-            # Write checks Q1-Q22 to columns B to W (indices 2 to 23)
-            for idx in range(1, 23):
-                val = data.get(f'q{idx}', '-')
-                ws.cell(row=row_idx, column=idx+1, value=val)
-                
-    # Fill in the Month/Year header cells (merged V1:W1, column V is 22)
-    try:
-        parts = current_month_prefix.split('-')
-        month_year_str = f"{parts[1]}/{parts[0]}"
-    except Exception:
-        month_year_str = ""
+        # Clear checkmark grid cells in rows 5 to 26, columns 2 to 32
+        for r_idx in range(5, 27):
+            row_cells = table.rows[r_idx].cells
+            for c_idx in range(2, min(33, len(row_cells))):
+                p = row_cells[c_idx].paragraphs[0]
+                p.alignment = 1 # Center align WD_ALIGN_PARAGRAPH
+                if p.runs:
+                    p.runs[0].text = ""
+                    for run in p.runs[1:]:
+                        run.text = ""
+                else:
+                    p.text = ""
+                    
+        # Fetch historical logs for checklist
+        history = get_all_historical_readings(db_key)
         
-    v1_cell = ws.cell(row=1, column=22, value=f"DOC NO: R/MAI/GS{genset_id}\nMONTH/YEAR: {month_year_str}")
-    from openpyxl.styles import Alignment
-    current_align = v1_cell.alignment
-    v1_cell.alignment = Alignment(
-        horizontal=current_align.horizontal if current_align else 'left',
-        vertical=current_align.vertical if current_align else 'center',
-        wrap_text=True
+        # Populate checklist records
+        for entry in history:
+            date_str = entry['date'] # "YYYY-MM-DD"
+            if not date_str.startswith(current_month_prefix):
+                continue
+                
+            data = entry['data']
+            try:
+                day_part = date_str.split('-')[2]
+                D = int(day_part)
+            except Exception:
+                continue
+                
+            col_idx = D + 1 # Day 1 is Column 2, Day 31 is Column 32
+            if 2 <= col_idx <= 32:
+                for C in range(1, 23):
+                    val = data.get(f'q{C}', '')
+                    char_val = "✓" if val == 'OK' else "X" if val == '-' else ""
+                    row_idx = C + 4 # C = 1 (Air filter cleaning) is row index 5
+                    row_cells = table.rows[row_idx].cells
+                    
+                    if col_idx < len(row_cells):
+                        p = row_cells[col_idx].paragraphs[0]
+                        p.alignment = 1 # Center align
+                        if p.runs:
+                            p.runs[0].text = char_val
+                            for run in p.runs[1:]:
+                                run.text = ""
+                        else:
+                            p.text = char_val
+                        
+    except Exception as e:
+        app.logger.error(f"Error loading/populating Word checklist: {str(e)}")
+        return f"Error loading Word checklist: {str(e)}", 500
+        
+    file_stream = io.BytesIO()
+    doc.save(file_stream)
+    file_stream.seek(0)
+    
+    return send_file(
+        file_stream,
+        mimetype="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        as_attachment=True,
+        download_name=f"genset{genset_id}_checklist_{current_month_prefix}.docx"
     )
     
     # Save the file to memory
