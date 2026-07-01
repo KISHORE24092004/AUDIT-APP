@@ -108,8 +108,10 @@ document.addEventListener('DOMContentLoaded', () => {
     { id: 'water-readings-form', key: 'draft_water_readings' },
     { id: 'genset-checklist-form-1', key: 'draft_genset1_checklist' },
     { id: 'genset-checklist-form-2', key: 'draft_genset2_checklist' },
-    { id: 'genset-readings-form', key: 'draft_genset_readings' },
-    { id: 'compressor-readings-form', key: 'draft_compressor_readings' },
+    { id: 'genset-125kw-readings-form', key: 'draft_genset_125kw_readings' },
+    { id: 'genset-160kw-readings-form', key: 'draft_genset_160kw_readings' },
+    { id: 'compressor-1-readings-form', key: 'draft_compressor1_readings' },
+    { id: 'compressor-2-readings-form', key: 'draft_compressor2_readings' },
     { id: 'canteen-waste-form', key: 'draft_canteen_waste' }
   ];
 
@@ -255,10 +257,14 @@ document.addEventListener('DOMContentLoaded', () => {
           viewerTitle.innerHTML = '<i class="fa-solid fa-charging-station" style="color: var(--color-warning);"></i> Genset-1 (125kW) Checklist - Monthly View';
         } else if (type === 'genset2') {
           viewerTitle.innerHTML = '<i class="fa-solid fa-charging-station" style="color: #ec4899;"></i> Genset-2 (160kW) Checklist - Monthly View';
-        } else if (type === 'genset_readings') {
-          viewerTitle.innerHTML = '<i class="fa-solid fa-charging-station" style="color: var(--color-warning);"></i> Genset Telemetry Readings - Monthly View';
-        } else if (type === 'compressor_readings') {
-          viewerTitle.innerHTML = '<i class="fa-solid fa-wind" style="color: var(--color-success);"></i> Compressor Telemetry Readings - Monthly View';
+        } else if (type === 'genset_125kw') {
+          viewerTitle.innerHTML = '<i class="fa-solid fa-charging-station" style="color: var(--color-warning);"></i> Genset 125kW Readings - Monthly View';
+        } else if (type === 'genset_160kw') {
+          viewerTitle.innerHTML = '<i class="fa-solid fa-charging-station" style="color: #ec4899;"></i> Genset 160kW Readings - Monthly View';
+        } else if (type === 'compressor1') {
+          viewerTitle.innerHTML = '<i class="fa-solid fa-wind" style="color: var(--color-success);"></i> Compressor-1 Readings - Monthly View';
+        } else if (type === 'compressor2') {
+          viewerTitle.innerHTML = '<i class="fa-solid fa-wind" style="color: var(--color-info);"></i> Compressor-2 Readings - Monthly View';
         } else {
           viewerTitle.innerHTML = '<i class="fa-solid fa-trash-can" style="color: #ec4899;"></i> Canteen Waste Log - Monthly View';
         }
@@ -283,10 +289,14 @@ document.addEventListener('DOMContentLoaded', () => {
               viewerTitle.innerHTML = `<i class="fa-solid fa-charging-station" style="color: var(--color-warning);"></i> Genset-1 (125kW) Checklist - ${monthYearDisplay}`;
             } else if (type === 'genset2') {
               viewerTitle.innerHTML = `<i class="fa-solid fa-charging-station" style="color: #ec4899;"></i> Genset-2 (160kW) Checklist - ${monthYearDisplay}`;
-            } else if (type === 'genset_readings') {
-              viewerTitle.innerHTML = `<i class="fa-solid fa-charging-station" style="color: var(--color-warning);"></i> Genset Telemetry Readings - ${monthYearDisplay}`;
-            } else if (type === 'compressor_readings') {
-              viewerTitle.innerHTML = `<i class="fa-solid fa-wind" style="color: var(--color-success);"></i> Compressor Telemetry Readings - ${monthYearDisplay}`;
+            } else if (type === 'genset_125kw') {
+              viewerTitle.innerHTML = `<i class="fa-solid fa-charging-station" style="color: var(--color-warning);"></i> Genset 125kW Readings - ${monthYearDisplay}`;
+            } else if (type === 'genset_160kw') {
+              viewerTitle.innerHTML = `<i class="fa-solid fa-charging-station" style="color: #ec4899;"></i> Genset 160kW Readings - ${monthYearDisplay}`;
+            } else if (type === 'compressor1') {
+              viewerTitle.innerHTML = `<i class="fa-solid fa-wind" style="color: var(--color-success);"></i> Compressor-1 Readings - ${monthYearDisplay}`;
+            } else if (type === 'compressor2') {
+              viewerTitle.innerHTML = `<i class="fa-solid fa-wind" style="color: var(--color-info);"></i> Compressor-2 Readings - ${monthYearDisplay}`;
             } else {
               viewerTitle.innerHTML = `<i class="fa-solid fa-trash-can" style="color: #ec4899;"></i> Canteen Waste Log - ${monthYearDisplay}`;
             }
@@ -396,7 +406,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 html += `</tr>`;
               }
               html += `</tbody></table>`;
-            } else if (type === 'genset_readings') {
+            } else if (type === 'genset_125kw' || type === 'genset_160kw') {
               html += `<div style="overflow-x: auto; width: 100%;"><table class="viewer-table">
                 <thead>
                   <tr>
@@ -434,7 +444,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 </tr>`;
               }
               html += `</tbody></table></div>`;
-            } else if (type === 'compressor_readings') {
+            } else if (type === 'compressor1' || type === 'compressor2') {
               html += `<div style="overflow-x: auto; width: 100%;"><table class="viewer-table">
                 <thead>
                   <tr>

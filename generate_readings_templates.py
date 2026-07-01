@@ -115,20 +115,24 @@ def generate_utility_template(utility_name, doc_no, sheet_title, headers, col_co
     print(f"Successfully generated {dst_name} template!")
 
 if __name__ == "__main__":
-    # Genset Readings (9 columns: A to I, which is col_count=9)
     genset_headers = [
         "BATTERY VOLTAGE", "DIESEL FILLING (LTR)", "RUNNING HOURS", "VOLTAGE",
         "KW/H", "DIESEL LEVEL", "RADIATOR WATER", "CARETAKER SIGN"
     ]
-    generate_utility_template("genset", "R/MAI/GR", "Genset Telemetry Readings Log", genset_headers, 9)
+    # Genset 125kW
+    generate_utility_template("genset_125kw", "R/MAI/GR/125", "Genset 125kW Telemetry Readings Log", genset_headers, 9)
+    # Genset 160kW
+    generate_utility_template("genset_160kw", "R/MAI/GR/160", "Genset 160kW Telemetry Readings Log", genset_headers, 9)
     
-    # Compressor Readings (7 columns: A to G, which is col_count=7)
     compressor_headers = [
         "RUNNING HOURS", "LOAD HOURS", "MOTOR HOURS", "BAR", "TEMPERATURE", "CARETAKER SIGN"
     ]
-    generate_utility_template("compressor", "R/MAI/CR", "Compressor Telemetry Readings Log", compressor_headers, 7)
+    # Compressor-1
+    generate_utility_template("compressor1", "R/MAI/CR/01", "Compressor-1 Telemetry Readings Log", compressor_headers, 7)
+    # Compressor-2
+    generate_utility_template("compressor2", "R/MAI/CR/02", "Compressor-2 Telemetry Readings Log", compressor_headers, 7)
     
-    # Canteen Waste (2 columns: A to B, which is col_count=2)
+    # Canteen Waste
     canteen_headers = [
         "CARETAKER SIGN"
     ]

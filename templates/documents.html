@@ -121,41 +121,81 @@
       </div>
     </div>
 
-    <!-- Genset Readings Excel Card -->
+    <!-- Genset 125kW Readings Excel Card -->
     <div class="nav-card" style="height: auto; align-items: center; justify-content: space-between; padding: 24px;">
       <div class="nav-card-icon" style="color: var(--color-warning); margin: 0 0 8px 0;">
         <i class="fa-solid fa-file-excel"></i>
       </div>
-      <span class="nav-card-title" style="margin-bottom: 4px; text-align: center;">Genset Readings Excel</span>
-      <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 16px; text-align: center;">Monthly generator operations telemetry log.</p>
+      <span class="nav-card-title" style="margin-bottom: 4px; text-align: center;">Genset 125kW Readings Excel</span>
+      <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 16px; text-align: center;">Monthly 125kW generator operations telemetry log.</p>
       
       <div style="display: flex; gap: 8px; width: 100%; justify-content: center; flex-wrap: wrap;">
         {% if user.role == 'admin' %}
-        <a href="{{ url_for('export_genset_readings') }}" class="btn" style="width: auto; padding: 8px 16px; font-size: 13px; background-color: var(--color-primary); display: inline-flex; align-items: center; gap: 6px; text-decoration: none; height: auto;">
+        <a href="{{ url_for('export_genset_125kw_readings') }}" class="btn" style="width: auto; padding: 8px 16px; font-size: 13px; background-color: var(--color-primary); display: inline-flex; align-items: center; gap: 6px; text-decoration: none; height: auto;">
           <i class="fa-solid fa-download"></i> Download
         </a>
         {% endif %}
-        <button class="btn btn-secondary btn-view-doc" data-type="genset_readings" style="width: auto; padding: 8px 16px; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; height: auto;">
+        <button class="btn btn-secondary btn-view-doc" data-type="genset_125kw" style="width: auto; padding: 8px 16px; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; height: auto;">
           <i class="fa-solid fa-eye"></i> View Online
         </button>
       </div>
     </div>
 
-    <!-- Compressor Readings Excel Card -->
+    <!-- Genset 160kW Readings Excel Card -->
+    <div class="nav-card" style="height: auto; align-items: center; justify-content: space-between; padding: 24px;">
+      <div class="nav-card-icon" style="color: #ec4899; margin: 0 0 8px 0;">
+        <i class="fa-solid fa-file-excel"></i>
+      </div>
+      <span class="nav-card-title" style="margin-bottom: 4px; text-align: center;">Genset 160kW Readings Excel</span>
+      <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 16px; text-align: center;">Monthly 160kW generator operations telemetry log.</p>
+      
+      <div style="display: flex; gap: 8px; width: 100%; justify-content: center; flex-wrap: wrap;">
+        {% if user.role == 'admin' %}
+        <a href="{{ url_for('export_genset_160kw_readings') }}" class="btn" style="width: auto; padding: 8px 16px; font-size: 13px; background-color: var(--color-primary); display: inline-flex; align-items: center; gap: 6px; text-decoration: none; height: auto;">
+          <i class="fa-solid fa-download"></i> Download
+        </a>
+        {% endif %}
+        <button class="btn btn-secondary btn-view-doc" data-type="genset_160kw" style="width: auto; padding: 8px 16px; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; height: auto;">
+          <i class="fa-solid fa-eye"></i> View Online
+        </button>
+      </div>
+    </div>
+
+    <!-- Compressor-1 Readings Excel Card -->
     <div class="nav-card" style="height: auto; align-items: center; justify-content: space-between; padding: 24px;">
       <div class="nav-card-icon" style="color: var(--color-success); margin: 0 0 8px 0;">
         <i class="fa-solid fa-file-excel"></i>
       </div>
-      <span class="nav-card-title" style="margin-bottom: 4px; text-align: center;">Compressor Readings Excel</span>
-      <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 16px; text-align: center;">Monthly air compressor operations telemetry log.</p>
+      <span class="nav-card-title" style="margin-bottom: 4px; text-align: center;">Compressor-1 Readings Excel</span>
+      <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 16px; text-align: center;">Monthly Compressor-1 operations telemetry log.</p>
       
       <div style="display: flex; gap: 8px; width: 100%; justify-content: center; flex-wrap: wrap;">
         {% if user.role == 'admin' %}
-        <a href="{{ url_for('export_compressor_readings') }}" class="btn" style="width: auto; padding: 8px 16px; font-size: 13px; background-color: var(--color-primary); display: inline-flex; align-items: center; gap: 6px; text-decoration: none; height: auto;">
+        <a href="{{ url_for('export_compressor1_readings') }}" class="btn" style="width: auto; padding: 8px 16px; font-size: 13px; background-color: var(--color-primary); display: inline-flex; align-items: center; gap: 6px; text-decoration: none; height: auto;">
           <i class="fa-solid fa-download"></i> Download
         </a>
         {% endif %}
-        <button class="btn btn-secondary btn-view-doc" data-type="compressor_readings" style="width: auto; padding: 8px 16px; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; height: auto;">
+        <button class="btn btn-secondary btn-view-doc" data-type="compressor1" style="width: auto; padding: 8px 16px; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; height: auto;">
+          <i class="fa-solid fa-eye"></i> View Online
+        </button>
+      </div>
+    </div>
+
+    <!-- Compressor-2 Readings Excel Card -->
+    <div class="nav-card" style="height: auto; align-items: center; justify-content: space-between; padding: 24px;">
+      <div class="nav-card-icon" style="color: #3b82f6; margin: 0 0 8px 0;">
+        <i class="fa-solid fa-file-excel"></i>
+      </div>
+      <span class="nav-card-title" style="margin-bottom: 4px; text-align: center;">Compressor-2 Readings Excel</span>
+      <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 16px; text-align: center;">Monthly Compressor-2 operations telemetry log.</p>
+      
+      <div style="display: flex; gap: 8px; width: 100%; justify-content: center; flex-wrap: wrap;">
+        {% if user.role == 'admin' %}
+        <a href="{{ url_for('export_compressor2_readings') }}" class="btn" style="width: auto; padding: 8px 16px; font-size: 13px; background-color: var(--color-primary); display: inline-flex; align-items: center; gap: 6px; text-decoration: none; height: auto;">
+          <i class="fa-solid fa-download"></i> Download
+        </a>
+        {% endif %}
+        <button class="btn btn-secondary btn-view-doc" data-type="compressor2" style="width: auto; padding: 8px 16px; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; height: auto;">
           <i class="fa-solid fa-eye"></i> View Online
         </button>
       </div>

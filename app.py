@@ -412,17 +412,29 @@ def get_genset_api_readings(genset_id):
     month_data = [entry for entry in history if entry['date'].startswith(current_month_prefix)]
     return {"status": "success", "data": month_data, "month_year": month_year_display}
 
-# JSON API Route for Genset readings
-@app.route('/api/readings/genset_readings')
+# JSON API Route for Genset 125kW readings
+@app.route('/api/readings/genset_125kw')
 @login_required
-def api_genset_readings_data():
-    return get_readings_api_generic("genset_readings")
+def api_genset_125kw_readings_data():
+    return get_readings_api_generic("genset_125kw_readings")
 
-# JSON API Route for Compressor readings
-@app.route('/api/readings/compressor_readings')
+# JSON API Route for Genset 160kW readings
+@app.route('/api/readings/genset_160kw')
 @login_required
-def api_compressor_readings_data():
-    return get_readings_api_generic("compressor_readings")
+def api_genset_160kw_readings_data():
+    return get_readings_api_generic("genset_160kw_readings")
+
+# JSON API Route for Compressor-1 readings
+@app.route('/api/readings/compressor1')
+@login_required
+def api_compressor1_readings_data():
+    return get_readings_api_generic("compressor1_readings")
+
+# JSON API Route for Compressor-2 readings
+@app.route('/api/readings/compressor2')
+@login_required
+def api_compressor2_readings_data():
+    return get_readings_api_generic("compressor2_readings")
 
 # JSON API Route for Canteen Waste logs
 @app.route('/api/readings/canteen_waste')
@@ -495,19 +507,19 @@ def readings():
     user = session['user']
     return render_template('readings.html', user=user)
 
-# Genset Readings Entry Form
-@app.route('/dashboard/daily/readings/genset_readings', methods=['GET', 'POST'])
+# Genset 125kW Readings Entry Form
+@app.route('/dashboard/daily/readings/genset_125kw', methods=['GET', 'POST'])
 @login_required
-def genset_readings_entry():
+def genset_125kw_readings_entry():
     user = session['user']
     today_date = get_current_ist_date()
-    db_key = 'genset_readings'
+    db_key = 'genset_125kw_readings'
     
     if request.method == 'POST':
         existing_data = get_readings_data(db_key, today_date)
         if existing_data:
-            flash("Genset readings for today are already locked.", "warning")
-            return redirect(url_for('genset_readings_entry'))
+            flash("Genset 125kW readings for today are already locked.", "warning")
+            return redirect(url_for('genset_125kw_readings_entry'))
             
         fields = [
             'battery_volt', 'diesel_filling', 'run_hours', 'voltage',
@@ -516,29 +528,60 @@ def genset_readings_entry():
         data = {f: request.form.get(f, '').strip() for f in fields}
         
         if set_readings_data(db_key, today_date, data):
-            flash("Genset readings saved successfully!", "success")
-            return redirect(url_for('genset_readings_entry'))
+            flash("Genset 125kW readings saved successfully!", "success")
+            return redirect(url_for('genset_125kw_readings_entry'))
         else:
             flash("Failed to save readings to database.", "danger")
-            return render_template('genset_readings.html', user=user, data=data, today_date=today_date, locked=False)
+            return render_template('genset_125kw_readings.html', user=user, data=data, today_date=today_date, locked=False)
             
     data = get_readings_data(db_key, today_date)
     locked = True if data else False
-    return render_template('genset_readings.html', user=user, data=data, today_date=today_date, locked=locked)
+    return render_template('genset_125kw_readings.html', user=user, data=data, today_date=today_date, locked=locked)
 
-# Compressor Readings Entry Form
-@app.route('/dashboard/daily/readings/compressor_readings', methods=['GET', 'POST'])
+# Genset 160kW Readings Entry Form
+@app.route('/dashboard/daily/readings/genset_160kw', methods=['GET', 'POST'])
 @login_required
-def compressor_readings_entry():
+def genset_160kw_readings_entry():
     user = session['user']
     today_date = get_current_ist_date()
-    db_key = 'compressor_readings'
+    db_key = 'genset_160kw_readings'
     
     if request.method == 'POST':
         existing_data = get_readings_data(db_key, today_date)
         if existing_data:
-            flash("Compressor readings for today are already locked.", "warning")
-            return redirect(url_for('compressor_readings_entry'))
+            flash("Genset 160kW readings for today are already locked.", "warning")
+            return redirect(url_for('genset_160kw_readings_entry'))
+            
+        fields = [
+            'battery_volt', 'diesel_filling', 'run_hours', 'voltage',
+            'kwh', 'diesel_level', 'radiator_water', 'caretaker_sign'
+        ]
+        data = {f: request.form.get(f, '').strip() for f in fields}
+        
+        if set_readings_data(db_key, today_date, data):
+            flash("Genset 160kW readings saved successfully!", "success")
+            return redirect(url_for('genset_160kw_readings_entry'))
+        else:
+            flash("Failed to save readings to database.", "danger")
+            return render_template('genset_160kw_readings.html', user=user, data=data, today_date=today_date, locked=False)
+            
+    data = get_readings_data(db_key, today_date)
+    locked = True if data else False
+    return render_template('genset_160kw_readings.html', user=user, data=data, today_date=today_date, locked=locked)
+
+# Compressor-1 Readings Entry Form
+@app.route('/dashboard/daily/readings/compressor1', methods=['GET', 'POST'])
+@login_required
+def compressor1_readings_entry():
+    user = session['user']
+    today_date = get_current_ist_date()
+    db_key = 'compressor1_readings'
+    
+    if request.method == 'POST':
+        existing_data = get_readings_data(db_key, today_date)
+        if existing_data:
+            flash("Compressor-1 readings for today are already locked.", "warning")
+            return redirect(url_for('compressor1_readings_entry'))
             
         fields = [
             'run_hours', 'load_hours', 'motor_hours', 'bar',
@@ -547,15 +590,46 @@ def compressor_readings_entry():
         data = {f: request.form.get(f, '').strip() for f in fields}
         
         if set_readings_data(db_key, today_date, data):
-            flash("Compressor readings saved successfully!", "success")
-            return redirect(url_for('compressor_readings_entry'))
+            flash("Compressor-1 readings saved successfully!", "success")
+            return redirect(url_for('compressor1_readings_entry'))
         else:
             flash("Failed to save readings to database.", "danger")
-            return render_template('compressor_readings.html', user=user, data=data, today_date=today_date, locked=False)
+            return render_template('compressor1_readings.html', user=user, data=data, today_date=today_date, locked=False)
             
     data = get_readings_data(db_key, today_date)
     locked = True if data else False
-    return render_template('compressor_readings.html', user=user, data=data, today_date=today_date, locked=locked)
+    return render_template('compressor1_readings.html', user=user, data=data, today_date=today_date, locked=locked)
+
+# Compressor-2 Readings Entry Form
+@app.route('/dashboard/daily/readings/compressor2', methods=['GET', 'POST'])
+@login_required
+def compressor2_readings_entry():
+    user = session['user']
+    today_date = get_current_ist_date()
+    db_key = 'compressor2_readings'
+    
+    if request.method == 'POST':
+        existing_data = get_readings_data(db_key, today_date)
+        if existing_data:
+            flash("Compressor-2 readings for today are already locked.", "warning")
+            return redirect(url_for('compressor2_readings_entry'))
+            
+        fields = [
+            'run_hours', 'load_hours', 'motor_hours', 'bar',
+            'temp', 'caretaker_sign'
+        ]
+        data = {f: request.form.get(f, '').strip() for f in fields}
+        
+        if set_readings_data(db_key, today_date, data):
+            flash("Compressor-2 readings saved successfully!", "success")
+            return redirect(url_for('compressor2_readings_entry'))
+        else:
+            flash("Failed to save readings to database.", "danger")
+            return render_template('compressor2_readings.html', user=user, data=data, today_date=today_date, locked=False)
+            
+    data = get_readings_data(db_key, today_date)
+    locked = True if data else False
+    return render_template('compressor2_readings.html', user=user, data=data, today_date=today_date, locked=locked)
 
 # Canteen Waste Entry Form
 @app.route('/dashboard/daily/readings/canteen_waste', methods=['GET', 'POST'])
@@ -1114,25 +1188,45 @@ def export_genset_generic(genset_id, capacity_str):
         download_name=f"genset{genset_id}_readings.xlsx"
     )
 
-# Export Genset readings to Excel
-@app.route('/dashboard/daily/readings/genset_readings/export')
+# Export Genset 125kW readings to Excel
+@app.route('/dashboard/daily/readings/genset_125kw/export')
 @admin_required
-def export_genset_readings():
+def export_genset_125kw_readings():
     genset_fields = [
         'battery_volt', 'diesel_filling', 'run_hours', 'voltage',
         'kwh', 'diesel_level', 'radiator_water', 'caretaker_sign'
     ]
-    return export_readings_generic("genset", "R/MAI/GR", genset_fields)
+    return export_readings_generic("genset_125kw", "R/MAI/GR/125", genset_fields)
 
-# Export Compressor readings to Excel
-@app.route('/dashboard/daily/readings/compressor_readings/export')
+# Export Genset 160kW readings to Excel
+@app.route('/dashboard/daily/readings/genset_160kw/export')
 @admin_required
-def export_compressor_readings():
+def export_genset_160kw_readings():
+    genset_fields = [
+        'battery_volt', 'diesel_filling', 'run_hours', 'voltage',
+        'kwh', 'diesel_level', 'radiator_water', 'caretaker_sign'
+    ]
+    return export_readings_generic("genset_160kw", "R/MAI/GR/160", genset_fields)
+
+# Export Compressor-1 readings to Excel
+@app.route('/dashboard/daily/readings/compressor1/export')
+@admin_required
+def export_compressor1_readings():
     compressor_fields = [
         'run_hours', 'load_hours', 'motor_hours', 'bar',
         'temp', 'caretaker_sign'
     ]
-    return export_readings_generic("compressor", "R/MAI/CR", compressor_fields)
+    return export_readings_generic("compressor1", "R/MAI/CR/01", compressor_fields)
+
+# Export Compressor-2 readings to Excel
+@app.route('/dashboard/daily/readings/compressor2/export')
+@admin_required
+def export_compressor2_readings():
+    compressor_fields = [
+        'run_hours', 'load_hours', 'motor_hours', 'bar',
+        'temp', 'caretaker_sign'
+    ]
+    return export_readings_generic("compressor2", "R/MAI/CR/02", compressor_fields)
 
 # Export Canteen Waste to Excel
 @app.route('/dashboard/daily/readings/canteen_waste/export')
