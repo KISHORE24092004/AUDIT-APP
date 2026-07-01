@@ -119,8 +119,13 @@ if __name__ == "__main__":
         "BATTERY VOLTAGE", "DIESEL FILLING (LTR)", "RUNNING HOURS", "VOLTAGE",
         "KW/H", "DIESEL LEVEL", "RADIATOR WATER", "CARETAKER SIGN"
     ]
-    # Genset 125kW
-    generate_utility_template("genset_125kw", "R/MAI/GR/125", "Genset 125kW Telemetry Readings Log", genset_headers, 9)
+    # Genset 125kW: Copy exact template
+    import shutil
+    shutil.copy(
+        os.path.join(os.path.dirname(__file__), "125kW readings.xlsx"),
+        os.path.join(os.path.dirname(__file__), "genset_125kw_readings_log.xlsx")
+    )
+    print("Successfully copied 125kW readings.xlsx as genset_125kw_readings_log.xlsx!")
     # Genset 160kW
     generate_utility_template("genset_160kw", "R/MAI/GR/160", "Genset 160kW Telemetry Readings Log", genset_headers, 9)
     

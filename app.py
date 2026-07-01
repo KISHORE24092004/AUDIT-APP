@@ -1264,23 +1264,33 @@ def export_readings_generic(utility_name, doc_no, fields_list):
         
     try:
         wb = openpyxl.load_workbook(template_path)
-        ws = wb[f'{utility_name}_readings' if "waste" not in utility_name else f'{utility_name}']
+        if utility_name == "genset_125kw":
+            ws = wb["125KwH"]
+        else:
+            ws = wb[f'{utility_name}_readings' if "waste" not in utility_name else f'{utility_name}']
         
         from openpyxl.styles import PatternFill
         no_fill = PatternFill(fill_type=None)
         yellow_fill = PatternFill(start_color="FFC000", end_color="FFC000", fill_type="solid")
         
-        col_count = len(fields_list) + 1
-        
-        # Clear columns B to last column (indices 2 to col_count)
-        for r in range(4, 19):
-            for c in range(2, col_count + 1):
-                ws.cell(row=r, column=c).value = None
-                ws.cell(row=r, column=c).fill = no_fill
-        for r in range(21, 36):
-            for c in range(2, col_count + 1):
-                ws.cell(row=r, column=c).value = None
-                ws.cell(row=r, column=c).fill = no_fill
+        if utility_name == "genset_125kw":
+            col_count = 11
+            # Clear columns B to K (indices 2 to 11) for rows 5 to 35
+            for r in range(5, 36):
+                for c in range(2, 12):
+                    ws.cell(row=r, column=c).value = None
+                    ws.cell(row=r, column=c).fill = no_fill
+        else:
+            col_count = len(fields_list) + 1
+            # Clear columns B to last column (indices 2 to col_count)
+            for r in range(4, 19):
+                for c in range(2, col_count + 1):
+                    ws.cell(row=r, column=c).value = None
+                    ws.cell(row=r, column=c).fill = no_fill
+            for r in range(21, 36):
+                for c in range(2, col_count + 1):
+                    ws.cell(row=r, column=c).value = None
+                    ws.cell(row=r, column=c).fill = no_fill
                 
         # Calculate Sundays
         try:
@@ -1299,12 +1309,15 @@ def export_readings_generic(utility_name, doc_no, fields_list):
                 
         # Apply yellow fill to Sunday rows
         for D in sundays:
-            if 1 <= D <= 15:
-                row_idx = D + 3
-            elif 16 <= D <= 30:
-                row_idx = D + 5
+            if utility_name == "genset_125kw":
+                row_idx = D + 4
             else:
-                row_idx = None
+                if 1 <= D <= 15:
+                    row_idx = D + 3
+                elif 16 <= D <= 30:
+                    row_idx = D + 5
+                else:
+                    row_idx = None
                 
             if row_idx:
                 for c in range(1, col_count + 1):
@@ -1340,37 +1353,66 @@ def export_readings_generic(utility_name, doc_no, fields_list):
         except Exception:
             continue
             
-        if 1 <= D <= 15:
-            row_idx = D + 3
-        elif 16 <= D <= 30:
-            row_idx = D + 5
+        if utility_name == "genset_125kw":
+            row_idx = D + 4
+            if row_idx:
+                # Column B (2): Date string
+                ws.cell(row=row_idx, column=2, value=date_str)
+                # Column C (3): battery_volt
+                ws.cell(row=row_idx, column=3, value=to_num(data.get('battery_volt')))
+                # Column D (4): diesel_filling
+                ws.cell(row=row_idx, column=4, value=to_num(data.get('diesel_filling')))
+                # Column E (5): run_hours
+                ws.cell(row=row_idx, column=5, value=to_num(data.get('run_hours')))
+                # Column F (6): voltage
+                ws.cell(row=row_idx, column=6, value=to_num(data.get('voltage')))
+                # Column G (7): kwh
+                ws.cell(row=row_idx, column=7, value=to_num(data.get('kwh')))
+                # Column H (8): diesel_level
+                ws.cell(row=row_idx, column=8, value=to_num(data.get('diesel_level')))
+                # Column I (9): radiator_water
+                ws.cell(row=row_idx, column=9, value=data.get('radiator_water'))
+                # Column J (10): Remarks
+                ws.cell(row=row_idx, column=10, value="")
+                # Column K (11): caretaker_sign
+                ws.cell(row=row_idx, column=11, value=data.get('caretaker_sign'))
         else:
-            row_idx = None
-            
-        if row_idx:
-            for idx, field in enumerate(fields_list):
-                val = data.get(field)
-                if field in ('oil_level', 'radiator_water', 'caretaker_sign'):
-                    parsed_val = val if val else None
-                else:
-                    parsed_val = to_num(val)
-                ws.cell(row=row_idx, column=idx+2, value=parsed_val)
+            if 1 <= D <= 15:
+                row_idx = D + 3
+            elif 16 <= D <= 30:
+                row_idx = D + 5
+            else:
+                row_idx = None
                 
-    # Fill in Month/Year header cell (merged at last column, row 1)
+            if row_idx:
+                for idx, field in enumerate(fields_list):
+                    val = data.get(field)
+                    if field in ('oil_level', 'radiator_water', 'caretaker_sign'):
+                        parsed_val = val if val else None
+                    else:
+                        parsed_val = to_num(val)
+                    ws.cell(row=row_idx, column=idx+2, value=parsed_val)
+                
+    # Fill in Month/Year header cell
     try:
         parts = current_month_prefix.split('-')
         month_year_str = f"{parts[1]}/{parts[0]}"
     except Exception:
         month_year_str = ""
         
-    doc_cell = ws.cell(row=1, column=col_count, value=f"DOC NO: {doc_no}\nMONTH/YEAR: {month_year_str}")
-    from openpyxl.styles import Alignment
-    current_align = doc_cell.alignment
-    doc_cell.alignment = Alignment(
-        horizontal=current_align.horizontal if current_align else 'left',
-        vertical=current_align.vertical if current_align else 'center',
-        wrap_text=True
-    )
+    if utility_name == "genset_125kw":
+        doc_cell = ws.cell(row=1, column=10, value=f"DATE/YEAR: {month_year_str}")
+        from openpyxl.styles import Alignment
+        doc_cell.alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)
+    else:
+        doc_cell = ws.cell(row=1, column=col_count, value=f"DOC NO: {doc_no}\nMONTH/YEAR: {month_year_str}")
+        from openpyxl.styles import Alignment
+        current_align = doc_cell.alignment
+        doc_cell.alignment = Alignment(
+            horizontal=current_align.horizontal if current_align else 'left',
+            vertical=current_align.vertical if current_align else 'center',
+            wrap_text=True
+        )
     
     file_stream = io.BytesIO()
     wb.save(file_stream)
