@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block title %}Canteen Waste - Portal{% endblock %}
+
+{% block content %}
+<div class="dashboard-layout" style="max-width: 600px;">
+  <!-- Header -->
+  <header class="dashboard-header">
+    <div>
+      <h1>Canteen Waste Log</h1>
+      <p class="subtitle" style="margin-bottom: 0;">Submit daily canteen waste operations logs.</p>
+    </div>
+    
+    <div style="display: flex; align-items: center; gap: 16px;">
+      <!-- Live Clock -->
+      <div class="live-clock">
+        <i class="fa-solid fa-clock" style="color: var(--color-info);"></i>
+        <span id="current-time"></span>
+      </div>
+
+      <div class="user-badge">
+        <div class="user-avatar">
+          {{ (user.username if user.username else user.email.split('@')[0])[0].upper() }}
+        </div>
+        <span class="user-email">@{{ user.username if user.username else user.email.split('@')[0] }}</span>
+      </div>
+      
+      <a href="{{ url_for('logout') }}" class="btn btn-secondary">
+        <i class="fa-solid fa-arrow-right-from-bracket"></i>
+        <span>Logout</span>
+      </a>
+    </div>
+  </header>
+
+  <!-- Breadcrumbs -->
+  <div class="breadcrumbs">
+    <a href="{{ url_for('dashboard') }}" class="breadcrumb-item"><i class="fa-solid fa-house"></i> Dashboard</a>
+    <span class="breadcrumb-separator"><i class="fa-solid fa-chevron-right"></i></span>
+    <a href="{{ url_for('daily') }}" class="breadcrumb-item">Daily</a>
+    <span class="breadcrumb-separator"><i class="fa-solid fa-chevron-right"></i></span>
+    <a href="{{ url_for('readings') }}" class="breadcrumb-item">Readings</a>
+    <span class="breadcrumb-separator"><i class="fa-solid fa-chevron-right"></i></span>
+    <span class="breadcrumb-active">Canteen Waste</span>
+  </div>
+
+  <form id="canteen-waste-form" action="{{ url_for('canteen_waste_entry') }}" method="POST" data-date="{{ today_date }}" {% if locked %}data-locked="true"{% endif %}>
+    <div class="readings-container">
+      <div class="table-wrapper" style="width: 100%; margin-bottom: 24px;">
+        <h2 class="table-wrapper-title">Daily Operations Log</h2>
+        <table class="readings-table">
+          <thead>
+            <tr>
+              <th style="width: 50%;">Telemetry Parameter</th>
+              <th style="width: 50%;">Value</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="font-weight: 500;">Caretaker Sign</td>
+              <td>
+                <input type="text" name="caretaker_sign" class="table-input" value="{{ data.get('caretaker_sign', '') }}" placeholder="Enter caretaker name" required>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Action buttons -->
+      <div class="readings-actions">
+        {% if locked %}
+          <div class="locked-badge">
+            <i class="fa-solid fa-lock"></i> Logs Saved & Locked for Today
+          </div>
+        {% else %}
+          <button type="submit" class="btn btn-save">
+            <i class="fa-solid fa-cloud-arrow-up"></i> Save Logs
+          </button>
+        {% endif %}
+      </div>
+
+    </div>
+  </form>
+</div>
+{% endblock %}

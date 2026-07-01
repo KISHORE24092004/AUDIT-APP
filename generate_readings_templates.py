@@ -5,7 +5,7 @@ from openpyxl.utils import get_column_letter
 
 def generate_utility_template(utility_name, doc_no, sheet_title, headers, col_count):
     src_path = os.path.join(os.path.dirname(__file__), "power_readings.xlsx")
-    dst_name = f"{utility_name}_readings_log.xlsx"
+    dst_name = f"{utility_name}_readings_log.xlsx" if "waste" not in utility_name else f"{utility_name}_log.xlsx"
     dst_path = os.path.join(os.path.dirname(__file__), dst_name)
     
     if not os.path.exists(src_path):
@@ -13,7 +13,7 @@ def generate_utility_template(utility_name, doc_no, sheet_title, headers, col_co
         
     wb = openpyxl.load_workbook(src_path)
     ws = wb.active
-    ws.title = f"{utility_name}_readings"
+    ws.title = f"{utility_name}_readings" if "waste" not in utility_name else f"{utility_name}"
     
     # Save the original style of cell K1 (Doc Info) before unmerging
     k1_cell = ws.cell(row=1, column=11)
@@ -84,12 +84,18 @@ def generate_utility_template(utility_name, doc_no, sheet_title, headers, col_co
         
     # 7. Re-merge ranges
     last_col_letter = get_column_letter(col_count)
-    prev_col_letter = get_column_letter(col_count - 1)
-    
-    new_merges = [
-        f"A1:{prev_col_letter}1", f"{last_col_letter}1:{last_col_letter}1",
-        f"B2:{last_col_letter}2", f"B19:{last_col_letter}19"
-    ]
+    if col_count > 1:
+        prev_col_letter = get_column_letter(col_count - 1)
+        new_merges = [
+            f"A1:{prev_col_letter}1", f"{last_col_letter}1:{last_col_letter}1",
+            f"B2:{last_col_letter}2", f"B19:{last_col_letter}19"
+        ]
+    else:
+        new_merges = [
+            f"A1:{last_col_letter}1",
+            f"B2:{last_col_letter}2", f"B19:{last_col_letter}19"
+        ]
+        
     for r in new_merges:
         ws.merge_cells(r)
         
@@ -121,3 +127,9 @@ if __name__ == "__main__":
         "RUNNING HOURS", "LOAD HOURS", "MOTOR HOURS", "BAR", "TEMPERATURE", "CARETAKER SIGN"
     ]
     generate_utility_template("compressor", "R/MAI/CR", "Compressor Telemetry Readings Log", compressor_headers, 7)
+    
+    # Canteen Waste (2 columns: A to B, which is col_count=2)
+    canteen_headers = [
+        "CARETAKER SIGN"
+    ]
+    generate_utility_template("canteen_waste", "R/MAI/CW", "Canteen Waste Log", canteen_headers, 2)

@@ -109,7 +109,8 @@ document.addEventListener('DOMContentLoaded', () => {
     { id: 'genset-checklist-form-1', key: 'draft_genset1_checklist' },
     { id: 'genset-checklist-form-2', key: 'draft_genset2_checklist' },
     { id: 'genset-readings-form', key: 'draft_genset_readings' },
-    { id: 'compressor-readings-form', key: 'draft_compressor_readings' }
+    { id: 'compressor-readings-form', key: 'draft_compressor_readings' },
+    { id: 'canteen-waste-form', key: 'draft_canteen_waste' }
   ];
 
   telemetryForms.forEach(config => {
@@ -256,8 +257,10 @@ document.addEventListener('DOMContentLoaded', () => {
           viewerTitle.innerHTML = '<i class="fa-solid fa-charging-station" style="color: #ec4899;"></i> Genset-2 (160kW) Checklist - Monthly View';
         } else if (type === 'genset_readings') {
           viewerTitle.innerHTML = '<i class="fa-solid fa-charging-station" style="color: var(--color-warning);"></i> Genset Telemetry Readings - Monthly View';
-        } else {
+        } else if (type === 'compressor_readings') {
           viewerTitle.innerHTML = '<i class="fa-solid fa-wind" style="color: var(--color-success);"></i> Compressor Telemetry Readings - Monthly View';
+        } else {
+          viewerTitle.innerHTML = '<i class="fa-solid fa-trash-can" style="color: #ec4899;"></i> Canteen Waste Log - Monthly View';
         }
         
         // Open modal
@@ -282,8 +285,10 @@ document.addEventListener('DOMContentLoaded', () => {
               viewerTitle.innerHTML = `<i class="fa-solid fa-charging-station" style="color: #ec4899;"></i> Genset-2 (160kW) Checklist - ${monthYearDisplay}`;
             } else if (type === 'genset_readings') {
               viewerTitle.innerHTML = `<i class="fa-solid fa-charging-station" style="color: var(--color-warning);"></i> Genset Telemetry Readings - ${monthYearDisplay}`;
-            } else {
+            } else if (type === 'compressor_readings') {
               viewerTitle.innerHTML = `<i class="fa-solid fa-wind" style="color: var(--color-success);"></i> Compressor Telemetry Readings - ${monthYearDisplay}`;
+            } else {
+              viewerTitle.innerHTML = `<i class="fa-solid fa-trash-can" style="color: #ec4899;"></i> Canteen Waste Log - ${monthYearDisplay}`;
             }
             
             // Compute days of current month
@@ -459,6 +464,30 @@ document.addEventListener('DOMContentLoaded', () => {
                   <td>${val.motor_hours || '-'}</td>
                   <td>${val.bar || '-'}</td>
                   <td>${val.temp || '-'}</td>
+                  <td>${val.caretaker_sign || '-'}</td>
+                </tr>`;
+              }
+              html += `</tbody></table></div>`;
+            } else if (type === 'canteen_waste') {
+              html += `<div style="overflow-x: auto; width: 100%;"><table class="viewer-table">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Caretaker Sign</th>
+                  </tr>
+                </thead>
+                <tbody>`;
+              
+              for (let d = 1; d <= daysInMonth; d++) {
+                const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+                const entry = dataList.find(e => e.date === dateStr);
+                const val = entry ? entry.data : {};
+                const dateObj = new Date(year, month, d);
+                const isSunday = dateObj.getDay() === 0;
+                const rowClass = isSunday ? 'class="sunday-row"' : '';
+                
+                html += `<tr ${rowClass}>
+                  <td style="font-weight: 600; min-width: 100px;">${dateStr}</td>
                   <td>${val.caretaker_sign || '-'}</td>
                 </tr>`;
               }

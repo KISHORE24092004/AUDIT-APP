@@ -424,6 +424,12 @@ def api_genset_readings_data():
 def api_compressor_readings_data():
     return get_readings_api_generic("compressor_readings")
 
+# JSON API Route for Canteen Waste logs
+@app.route('/api/readings/canteen_waste')
+@login_required
+def api_canteen_waste_data():
+    return get_readings_api_generic("canteen_waste")
+
 def get_readings_api_generic(db_key):
     current_date = datetime.utcnow() + timedelta(hours=5, minutes=30)
     current_month_prefix = current_date.strftime("%Y-%m")
@@ -550,6 +556,34 @@ def compressor_readings_entry():
     data = get_readings_data(db_key, today_date)
     locked = True if data else False
     return render_template('compressor_readings.html', user=user, data=data, today_date=today_date, locked=locked)
+
+# Canteen Waste Entry Form
+@app.route('/dashboard/daily/readings/canteen_waste', methods=['GET', 'POST'])
+@login_required
+def canteen_waste_entry():
+    user = session['user']
+    today_date = get_current_ist_date()
+    db_key = 'canteen_waste'
+    
+    if request.method == 'POST':
+        existing_data = get_readings_data(db_key, today_date)
+        if existing_data:
+            flash("Canteen Waste logs for today are already locked.", "warning")
+            return redirect(url_for('canteen_waste_entry'))
+            
+        fields = ['caretaker_sign']
+        data = {f: request.form.get(f, '').strip() for f in fields}
+        
+        if set_readings_data(db_key, today_date, data):
+            flash("Canteen Waste logs saved successfully!", "success")
+            return redirect(url_for('canteen_waste_entry'))
+        else:
+            flash("Failed to save logs to database.", "danger")
+            return render_template('canteen_waste.html', user=user, data=data, today_date=today_date, locked=False)
+            
+    data = get_readings_data(db_key, today_date)
+    locked = True if data else False
+    return render_template('canteen_waste.html', user=user, data=data, today_date=today_date, locked=locked)
 
 # Power House 1 & 2 Table Form
 @app.route('/dashboard/daily/readings/power', methods=['GET', 'POST'])
@@ -1100,13 +1134,20 @@ def export_compressor_readings():
     ]
     return export_readings_generic("compressor", "R/MAI/CR", compressor_fields)
 
+# Export Canteen Waste to Excel
+@app.route('/dashboard/daily/readings/canteen_waste/export')
+@admin_required
+def export_canteen_waste():
+    canteen_fields = ['caretaker_sign']
+    return export_readings_generic("canteen_waste", "R/MAI/CW", canteen_fields)
+
 def export_readings_generic(utility_name, doc_no, fields_list):
     import io
     import openpyxl
     from flask import send_file
     
     current_month_prefix = get_current_ist_date()[:7] # "YYYY-MM"
-    template_name = f"{utility_name}_readings_log.xlsx"
+    template_name = f"{utility_name}_readings_log.xlsx" if "waste" not in utility_name else f"{utility_name}_log.xlsx"
     template_path = os.path.join(os.path.dirname(__file__), template_name)
     
     if not os.path.exists(template_path):
@@ -1114,7 +1155,7 @@ def export_readings_generic(utility_name, doc_no, fields_list):
         
     try:
         wb = openpyxl.load_workbook(template_path)
-        ws = wb[f'{utility_name}_readings']
+        ws = wb[f'{utility_name}_readings' if "waste" not in utility_name else f'{utility_name}']
         
         from openpyxl.styles import PatternFill
         no_fill = PatternFill(fill_type=None)
@@ -1229,7 +1270,7 @@ def export_readings_generic(utility_name, doc_no, fields_list):
         file_stream,
         mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         as_attachment=True,
-        download_name=f"{utility_name}_readings.xlsx"
+        download_name=f"{utility_name}_readings.xlsx" if "waste" not in utility_name else f"{utility_name}.xlsx"
     )
 
 # Admin and User CRUD Management Routes
