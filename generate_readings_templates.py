@@ -141,8 +141,9 @@ if __name__ == "__main__":
     # Compressor-2
     generate_utility_template("compressor2", "R/MAI/CR/02", "Compressor-2 Telemetry Readings Log", compressor_headers, 7)
     
-    # Canteen Waste
-    canteen_headers = [
-        "MEALS WASTE (KG)", "VEGETABLE WASTE (KG)", "CARETAKER SIGN"
-    ]
-    generate_utility_template("canteen_waste", "R/MAI/CW", "Canteen Waste Log", canteen_headers, 4)
+    # Canteen Waste: Copy exact template
+    shutil.copy(
+        os.path.join(os.path.dirname(__file__), "canteen_waste_template.xlsx"),
+        os.path.join(os.path.dirname(__file__), "canteen_waste_log.xlsx")
+    )
+    print("Successfully copied canteen_waste_template.xlsx as canteen_waste_log.xlsx!")

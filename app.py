@@ -1268,6 +1268,8 @@ def export_readings_generic(utility_name, doc_no, fields_list):
             ws = wb["125KwH"]
         elif utility_name == "genset_160kw":
             ws = wb["160KwH "]
+        elif utility_name == "canteen_waste":
+            ws = wb["FOOD WASTE"]
         else:
             ws = wb[f'{utility_name}_readings' if "waste" not in utility_name else f'{utility_name}']
         
@@ -1280,6 +1282,13 @@ def export_readings_generic(utility_name, doc_no, fields_list):
             # Clear columns B to K (indices 2 to 11) for rows 5 to 35
             for r in range(5, 36):
                 for c in range(2, 12):
+                    ws.cell(row=r, column=c).value = None
+                    ws.cell(row=r, column=c).fill = no_fill
+        elif utility_name == "canteen_waste":
+            col_count = 4
+            # Clear columns B to D (indices 2 to 4) for rows 4 to 34
+            for r in range(4, 35):
+                for c in range(2, 5):
                     ws.cell(row=r, column=c).value = None
                     ws.cell(row=r, column=c).fill = no_fill
         else:
@@ -1313,6 +1322,8 @@ def export_readings_generic(utility_name, doc_no, fields_list):
         for D in sundays:
             if utility_name in ("genset_125kw", "genset_160kw"):
                 row_idx = D + 4
+            elif utility_name == "canteen_waste":
+                row_idx = D + 3
             else:
                 if 1 <= D <= 15:
                     row_idx = D + 3
@@ -1378,6 +1389,15 @@ def export_readings_generic(utility_name, doc_no, fields_list):
                 ws.cell(row=row_idx, column=10, value="")
                 # Column K (11): caretaker_sign
                 ws.cell(row=row_idx, column=11, value=data.get('caretaker_sign'))
+        elif utility_name == "canteen_waste":
+            row_idx = D + 3
+            if row_idx:
+                # Column B (2): meals_waste
+                ws.cell(row=row_idx, column=2, value=to_num(data.get('meals_waste')))
+                # Column C (3): vegetable_waste
+                ws.cell(row=row_idx, column=3, value=to_num(data.get('vegetable_waste')))
+                # Column D (4): Remarks
+                ws.cell(row=row_idx, column=4, value="")
         else:
             if 1 <= D <= 15:
                 row_idx = D + 3
@@ -1406,6 +1426,21 @@ def export_readings_generic(utility_name, doc_no, fields_list):
         doc_cell = ws.cell(row=1, column=10, value=f"DATE/YEAR: {month_year_str}")
         from openpyxl.styles import Alignment
         doc_cell.alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)
+    elif utility_name == "canteen_waste":
+        doc_cell = ws.cell(row=2, column=4, value=f"MONTH/YEAR : {month_year_str}")
+        from openpyxl.styles import Alignment
+        doc_cell.alignment = Alignment(horizontal='left', vertical='center')
+        
+        # Populate bottom signature sign-off
+        latest_caretaker = ""
+        for entry in history:
+            if entry['date'].startswith(current_month_prefix):
+                c_sign = entry['data'].get('caretaker_sign')
+                if c_sign:
+                    latest_caretaker = c_sign
+        if latest_caretaker:
+            ws.cell(row=35, column=1, value=f"MAINTAIN BY\n\n{latest_caretaker}")
+            ws.cell(row=35, column=1).alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)
     else:
         doc_cell = ws.cell(row=1, column=col_count, value=f"DOC NO: {doc_no}\nMONTH/YEAR: {month_year_str}")
         from openpyxl.styles import Alignment
