@@ -126,8 +126,12 @@ if __name__ == "__main__":
         os.path.join(os.path.dirname(__file__), "genset_125kw_readings_log.xlsx")
     )
     print("Successfully copied 125kW readings.xlsx as genset_125kw_readings_log.xlsx!")
-    # Genset 160kW
-    generate_utility_template("genset_160kw", "R/MAI/GR/160", "Genset 160kW Telemetry Readings Log", genset_headers, 9)
+    # Genset 160kW: Copy exact template
+    shutil.copy(
+        os.path.join(os.path.dirname(__file__), "160kW readings.xlsx"),
+        os.path.join(os.path.dirname(__file__), "genset_160kw_readings_log.xlsx")
+    )
+    print("Successfully copied 160kW readings.xlsx as genset_160kw_readings_log.xlsx!")
     
     compressor_headers = [
         "RUNNING HOURS", "LOAD HOURS", "MOTOR HOURS", "BAR", "TEMPERATURE", "CARETAKER SIGN"

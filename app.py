@@ -1266,6 +1266,8 @@ def export_readings_generic(utility_name, doc_no, fields_list):
         wb = openpyxl.load_workbook(template_path)
         if utility_name == "genset_125kw":
             ws = wb["125KwH"]
+        elif utility_name == "genset_160kw":
+            ws = wb["160KwH "]
         else:
             ws = wb[f'{utility_name}_readings' if "waste" not in utility_name else f'{utility_name}']
         
@@ -1273,7 +1275,7 @@ def export_readings_generic(utility_name, doc_no, fields_list):
         no_fill = PatternFill(fill_type=None)
         yellow_fill = PatternFill(start_color="FFC000", end_color="FFC000", fill_type="solid")
         
-        if utility_name == "genset_125kw":
+        if utility_name in ("genset_125kw", "genset_160kw"):
             col_count = 11
             # Clear columns B to K (indices 2 to 11) for rows 5 to 35
             for r in range(5, 36):
@@ -1309,7 +1311,7 @@ def export_readings_generic(utility_name, doc_no, fields_list):
                 
         # Apply yellow fill to Sunday rows
         for D in sundays:
-            if utility_name == "genset_125kw":
+            if utility_name in ("genset_125kw", "genset_160kw"):
                 row_idx = D + 4
             else:
                 if 1 <= D <= 15:
@@ -1353,7 +1355,7 @@ def export_readings_generic(utility_name, doc_no, fields_list):
         except Exception:
             continue
             
-        if utility_name == "genset_125kw":
+        if utility_name in ("genset_125kw", "genset_160kw"):
             row_idx = D + 4
             if row_idx:
                 # Column B (2): Date string
@@ -1400,7 +1402,7 @@ def export_readings_generic(utility_name, doc_no, fields_list):
     except Exception:
         month_year_str = ""
         
-    if utility_name == "genset_125kw":
+    if utility_name in ("genset_125kw", "genset_160kw"):
         doc_cell = ws.cell(row=1, column=10, value=f"DATE/YEAR: {month_year_str}")
         from openpyxl.styles import Alignment
         doc_cell.alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)
