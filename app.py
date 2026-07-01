@@ -1256,7 +1256,19 @@ def export_readings_generic(utility_name, doc_no, fields_list):
     from flask import send_file
     
     current_month_prefix = get_current_ist_date()[:7] # "YYYY-MM"
-    template_name = f"{utility_name}_readings_log.xlsx" if "waste" not in utility_name else f"{utility_name}_log.xlsx"
+    if utility_name == "genset_125kw":
+        template_name = "125kW readings.xlsx"
+    elif utility_name == "genset_160kw":
+        template_name = "160kW readings.xlsx"
+    elif utility_name == "compressor1":
+        template_name = "compressor -1 readings.xlsx"
+    elif utility_name == "compressor2":
+        template_name = "compressor -2 readings.xlsx"
+    elif utility_name == "canteen_waste":
+        template_name = "canteen_waste_template.xlsx"
+    else:
+        template_name = f"{utility_name}_readings_log.xlsx"
+        
     template_path = os.path.join(os.path.dirname(__file__), template_name)
     
     if not os.path.exists(template_path):
@@ -1268,6 +1280,8 @@ def export_readings_generic(utility_name, doc_no, fields_list):
             ws = wb["125KwH"]
         elif utility_name == "genset_160kw":
             ws = wb["160KwH "]
+        elif utility_name in ("compressor1", "compressor2"):
+            ws = wb["Sheet2"]
         elif utility_name == "canteen_waste":
             ws = wb["FOOD WASTE"]
         else:
@@ -1277,20 +1291,23 @@ def export_readings_generic(utility_name, doc_no, fields_list):
         no_fill = PatternFill(fill_type=None)
         yellow_fill = PatternFill(start_color="FFC000", end_color="FFC000", fill_type="solid")
         
-        if utility_name in ("genset_125kw", "genset_160kw"):
-            col_count = 11
-            # Clear columns B to K (indices 2 to 11) for rows 5 to 35
-            for r in range(5, 36):
-                for c in range(2, 12):
-                    ws.cell(row=r, column=c).value = None
-                    ws.cell(row=r, column=c).fill = no_fill
-        elif utility_name == "canteen_waste":
-            col_count = 4
-            # Clear columns B to D (indices 2 to 4) for rows 4 to 34
-            for r in range(4, 35):
-                for c in range(2, 5):
-                    ws.cell(row=r, column=c).value = None
-                    ws.cell(row=r, column=c).fill = no_fill
+        if utility_name in ("genset_125kw", "genset_160kw", "compressor1", "compressor2", "canteen_waste"):
+            if "genset" in utility_name:
+                col_count = 11
+            elif "compressor" in utility_name:
+                col_count = 10
+            else:
+                col_count = 4 # canteen_waste
+            # Clear columns B to last column for rows 5 to 35 (or 4 to 34 for canteen waste)
+            from openpyxl.cell.cell import MergedCell
+            start_row = 4 if utility_name == "canteen_waste" else 5
+            end_row = 34 if utility_name == "canteen_waste" else 35
+            for r in range(start_row, end_row + 1):
+                for c in range(2, col_count + 1):
+                    cell = ws.cell(row=r, column=c)
+                    if not isinstance(cell, MergedCell):
+                        cell.value = None
+                        cell.fill = no_fill
         else:
             col_count = len(fields_list) + 1
             # Clear columns B to last column (indices 2 to col_count)
@@ -1320,7 +1337,7 @@ def export_readings_generic(utility_name, doc_no, fields_list):
                 
         # Apply yellow fill to Sunday rows
         for D in sundays:
-            if utility_name in ("genset_125kw", "genset_160kw"):
+            if utility_name in ("genset_125kw", "genset_160kw", "compressor1", "compressor2"):
                 row_idx = D + 4
             elif utility_name == "canteen_waste":
                 row_idx = D + 3
@@ -1369,35 +1386,69 @@ def export_readings_generic(utility_name, doc_no, fields_list):
         if utility_name in ("genset_125kw", "genset_160kw"):
             row_idx = D + 4
             if row_idx:
+                from openpyxl.cell.cell import MergedCell
+                def safe_set(col, val):
+                    cell = ws.cell(row=row_idx, column=col)
+                    if not isinstance(cell, MergedCell):
+                        cell.value = val
                 # Column B (2): Date string
-                ws.cell(row=row_idx, column=2, value=date_str)
+                safe_set(2, date_str)
                 # Column C (3): battery_volt
-                ws.cell(row=row_idx, column=3, value=to_num(data.get('battery_volt')))
+                safe_set(3, to_num(data.get('battery_volt')))
                 # Column D (4): diesel_filling
-                ws.cell(row=row_idx, column=4, value=to_num(data.get('diesel_filling')))
+                safe_set(4, to_num(data.get('diesel_filling')))
                 # Column E (5): run_hours
-                ws.cell(row=row_idx, column=5, value=to_num(data.get('run_hours')))
+                safe_set(5, to_num(data.get('run_hours')))
                 # Column F (6): voltage
-                ws.cell(row=row_idx, column=6, value=to_num(data.get('voltage')))
+                safe_set(6, to_num(data.get('voltage')))
                 # Column G (7): kwh
-                ws.cell(row=row_idx, column=7, value=to_num(data.get('kwh')))
+                safe_set(7, to_num(data.get('kwh')))
                 # Column H (8): diesel_level
-                ws.cell(row=row_idx, column=8, value=to_num(data.get('diesel_level')))
+                safe_set(8, to_num(data.get('diesel_level')))
                 # Column I (9): radiator_water
-                ws.cell(row=row_idx, column=9, value=data.get('radiator_water'))
+                safe_set(9, data.get('radiator_water'))
                 # Column J (10): Remarks
-                ws.cell(row=row_idx, column=10, value="")
+                safe_set(10, "")
                 # Column K (11): caretaker_sign
-                ws.cell(row=row_idx, column=11, value=data.get('caretaker_sign'))
+                safe_set(11, data.get('caretaker_sign'))
+        elif utility_name in ("compressor1", "compressor2"):
+            row_idx = D + 4
+            if row_idx:
+                from openpyxl.cell.cell import MergedCell
+                def safe_set(col, val):
+                    cell = ws.cell(row=row_idx, column=col)
+                    if not isinstance(cell, MergedCell):
+                        cell.value = val
+                # Column B (2): Date string
+                safe_set(2, date_str)
+                # Column C (3): run_hours
+                safe_set(3, to_num(data.get('run_hours')))
+                # Column D (4): load_hours
+                safe_set(4, to_num(data.get('load_hours')))
+                # Column E (5): motor_hours
+                safe_set(5, to_num(data.get('motor_hours')))
+                # Column F (6): bar
+                safe_set(6, to_num(data.get('bar')))
+                # Column G (7): temp
+                safe_set(7, to_num(data.get('temp')))
+                # Column H (8): Remarks
+                safe_set(8, "")
+                # Column J (10): caretaker_sign
+                safe_set(10, data.get('caretaker_sign'))
         elif utility_name == "canteen_waste":
             row_idx = D + 3
             if row_idx:
+                from openpyxl.cell.cell import MergedCell
+                def safe_set(col, val):
+                    cell = ws.cell(row=row_idx, column=col)
+                    if not isinstance(cell, MergedCell):
+                        cell.value = val
                 # Column B (2): meals_waste
-                ws.cell(row=row_idx, column=2, value=to_num(data.get('meals_waste')))
+                safe_set(2, to_num(data.get('meals_waste')))
                 # Column C (3): vegetable_waste
-                ws.cell(row=row_idx, column=3, value=to_num(data.get('vegetable_waste')))
-                # Column D (4): Remarks
-                ws.cell(row=row_idx, column=4, value="")
+                safe_set(3, to_num(data.get('vegetable_waste')))
+                # Column D (4): caretaker_sign
+                safe_set(4, data.get('caretaker_sign'))
         else:
             if 1 <= D <= 15:
                 row_idx = D + 3
@@ -1426,21 +1477,14 @@ def export_readings_generic(utility_name, doc_no, fields_list):
         doc_cell = ws.cell(row=1, column=10, value=f"DATE/YEAR: {month_year_str}")
         from openpyxl.styles import Alignment
         doc_cell.alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)
+    elif utility_name in ("compressor1", "compressor2"):
+        doc_cell = ws.cell(row=1, column=8, value=f"MONTH/YEAR: {month_year_str}")
+        from openpyxl.styles import Alignment
+        doc_cell.alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)
     elif utility_name == "canteen_waste":
         doc_cell = ws.cell(row=2, column=4, value=f"MONTH/YEAR : {month_year_str}")
         from openpyxl.styles import Alignment
-        doc_cell.alignment = Alignment(horizontal='left', vertical='center')
-        
-        # Populate bottom signature sign-off
-        latest_caretaker = ""
-        for entry in history:
-            if entry['date'].startswith(current_month_prefix):
-                c_sign = entry['data'].get('caretaker_sign')
-                if c_sign:
-                    latest_caretaker = c_sign
-        if latest_caretaker:
-            ws.cell(row=35, column=1, value=f"MAINTAIN BY\n\n{latest_caretaker}")
-            ws.cell(row=35, column=1).alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)
+        doc_cell.alignment = Alignment(horizontal='right', vertical='center', wrap_text=True)
     else:
         doc_cell = ws.cell(row=1, column=col_count, value=f"DOC NO: {doc_no}\nMONTH/YEAR: {month_year_str}")
         from openpyxl.styles import Alignment
