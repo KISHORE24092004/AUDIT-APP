@@ -364,11 +364,26 @@ def dashboard():
     return render_template('dashboard.html', user=user)
 
 # Documents Dashboard (Excel/CSV Export List)
+# Documents Dashboard Menu Selection Landing Page
 @app.route('/dashboard/documents')
 @login_required
 def documents():
     user = session['user']
-    return render_template('documents.html', user=user)
+    return render_template('documents_menu.html', user=user)
+
+# Telemetry Readings Logs documents list
+@app.route('/dashboard/documents/readings')
+@login_required
+def documents_readings():
+    user = session['user']
+    return render_template('documents_readings.html', user=user)
+
+# Checklist Logs documents list
+@app.route('/dashboard/documents/checklists')
+@login_required
+def documents_checklists():
+    user = session['user']
+    return render_template('documents_checklists.html', user=user)
 
 # JSON API Route for Power readings
 @app.route('/api/readings/power')

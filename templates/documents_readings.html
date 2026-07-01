@@ -1,14 +1,14 @@
 {% extends "base.html" %}
 
-{% block title %}Documents - Portal{% endblock %}
+{% block title %}Telemetry Readings Logs - Portal{% endblock %}
 
 {% block content %}
 <div class="dashboard-layout">
   <!-- Header -->
   <header class="dashboard-header">
     <div>
-      <h1>Documents & Reports</h1>
-      <p class="subtitle" style="margin-bottom: 0;">Download Excel telemetry spreadsheets for your audit logs.</p>
+      <h1>Telemetry Readings Logs</h1>
+      <p class="subtitle" style="margin-bottom: 0;">Download Excel telemetry spreadsheets or view monthly logs online.</p>
     </div>
     
     <div style="display: flex; align-items: center; gap: 16px;">
@@ -36,7 +36,9 @@
   <div class="breadcrumbs">
     <a href="{{ url_for('dashboard') }}" class="breadcrumb-item"><i class="fa-solid fa-house"></i> Dashboard</a>
     <span class="breadcrumb-separator"><i class="fa-solid fa-chevron-right"></i></span>
-    <span class="breadcrumb-active">Documents</span>
+    <a href="{{ url_for('documents') }}" class="breadcrumb-item">Documents</a>
+    <span class="breadcrumb-separator"><i class="fa-solid fa-chevron-right"></i></span>
+    <span class="breadcrumb-active">Readings</span>
   </div>
 
   <!-- Documents Grid -->
@@ -76,46 +78,6 @@
         </a>
         {% endif %}
         <button class="btn btn-secondary btn-view-doc" data-type="water" style="width: auto; padding: 8px 16px; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; height: auto;">
-          <i class="fa-solid fa-eye"></i> View Online
-        </button>
-      </div>
-    </div>
-
-    <!-- Genset-1 (125kW) Excel Card -->
-    <div class="nav-card" style="height: auto; align-items: center; justify-content: space-between; padding: 24px;">
-      <div class="nav-card-icon" style="color: var(--color-warning); margin: 0 0 8px 0;">
-        <i class="fa-solid fa-file-excel"></i>
-      </div>
-      <span class="nav-card-title" style="margin-bottom: 4px; text-align: center;">Genset-1 (125kW) Excel</span>
-      <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 16px; text-align: center;">Monthly 125kW backup generator status checklist log.</p>
-      
-      <div style="display: flex; gap: 8px; width: 100%; justify-content: center; flex-wrap: wrap;">
-        {% if user.role == 'admin' %}
-        <a href="{{ url_for('export_genset1') }}" class="btn" style="width: auto; padding: 8px 16px; font-size: 13px; background-color: var(--color-primary); display: inline-flex; align-items: center; gap: 6px; text-decoration: none; height: auto;">
-          <i class="fa-solid fa-download"></i> Download
-        </a>
-        {% endif %}
-        <button class="btn btn-secondary btn-view-doc" data-type="genset1" style="width: auto; padding: 8px 16px; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; height: auto;">
-          <i class="fa-solid fa-eye"></i> View Online
-        </button>
-      </div>
-    </div>
-
-    <!-- Genset-2 (160kW) Excel Card -->
-    <div class="nav-card" style="height: auto; align-items: center; justify-content: space-between; padding: 24px;">
-      <div class="nav-card-icon" style="color: #ec4899; margin: 0 0 8px 0;">
-        <i class="fa-solid fa-file-excel"></i>
-      </div>
-      <span class="nav-card-title" style="margin-bottom: 4px; text-align: center;">Genset-2 (160kW) Excel</span>
-      <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 16px; text-align: center;">Monthly 160kW backup generator status checklist log.</p>
-      
-      <div style="display: flex; gap: 8px; width: 100%; justify-content: center; flex-wrap: wrap;">
-        {% if user.role == 'admin' %}
-        <a href="{{ url_for('export_genset2') }}" class="btn" style="width: auto; padding: 8px 16px; font-size: 13px; background-color: var(--color-primary); display: inline-flex; align-items: center; gap: 6px; text-decoration: none; height: auto;">
-          <i class="fa-solid fa-download"></i> Download
-        </a>
-        {% endif %}
-        <button class="btn btn-secondary btn-view-doc" data-type="genset2" style="width: auto; padding: 8px 16px; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; height: auto;">
           <i class="fa-solid fa-eye"></i> View Online
         </button>
       </div>

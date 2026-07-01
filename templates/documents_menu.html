@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block title %}Documents - Portal{% endblock %}
+
+{% block content %}
+<div class="dashboard-layout">
+  <!-- Header -->
+  <header class="dashboard-header">
+    <div>
+      <h1>Documents & Reports</h1>
+      <p class="subtitle" style="margin-bottom: 0;">Access logged telemetry logs and checklists log history.</p>
+    </div>
+    
+    <div style="display: flex; align-items: center; gap: 16px;">
+      <!-- Live Clock -->
+      <div class="live-clock">
+        <i class="fa-solid fa-clock" style="color: var(--color-info);"></i>
+        <span id="current-time"></span>
+      </div>
+
+      <div class="user-badge">
+        <div class="user-avatar">
+          {{ (user.username if user.username else user.email.split('@')[0])[0].upper() }}
+        </div>
+        <span class="user-email">@{{ user.username if user.username else user.email.split('@')[0] }}</span>
+      </div>
+      
+      <a href="{{ url_for('logout') }}" class="btn btn-secondary">
+        <i class="fa-solid fa-arrow-right-from-bracket"></i>
+        <span>Logout</span>
+      </a>
+    </div>
+  </header>
+
+  <!-- Breadcrumbs -->
+  <div class="breadcrumbs">
+    <a href="{{ url_for('dashboard') }}" class="breadcrumb-item"><i class="fa-solid fa-house"></i> Dashboard</a>
+    <span class="breadcrumb-separator"><i class="fa-solid fa-chevron-right"></i></span>
+    <span class="breadcrumb-active">Documents</span>
+  </div>
+
+  <!-- Navigation Grid -->
+  <div class="nav-grid">
+    <!-- Telemetry Readings Logs -->
+    <a href="{{ url_for('documents_readings') }}" class="nav-card">
+      <div class="nav-card-icon" style="color: var(--color-primary);">
+        <i class="fa-solid fa-file-invoice"></i>
+      </div>
+      <span class="nav-card-title" style="text-align: center;">Telemetry Readings Logs</span>
+    </a>
+
+    <!-- Checklist Logs -->
+    <a href="{{ url_for('documents_checklists') }}" class="nav-card">
+      <div class="nav-card-icon" style="color: var(--color-warning);">
+        <i class="fa-solid fa-list-check"></i>
+      </div>
+      <span class="nav-card-title" style="text-align: center;">Checklist Logs</span>
+    </a>
+  </div>
+</div>
+{% endblock %}
