@@ -80,11 +80,16 @@ def save_mock_readings(reading_type, user_key, data):
     except Exception:
         pass
 
+# Default Supabase Configuration Fallbacks
+DEFAULT_SUPABASE_URL = "https://tpqflctmtuxdwkorscne.supabase.co"
+DEFAULT_SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRwcWZsY3RtdHV4ZHdrb3JzY25lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE3ODQyOTUsImV4cCI6MjA5NzM2MDI5NX0.wl7T_j0UicrwmOVexN7dmNagDtZpKT3sHHXM2_A9mhg"
+DEFAULT_SUPABASE_SERVICE_ROLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRwcWZsY3RtdHV4ZHdrb3JzY25lIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4MTc4NDI5NSwiZXhwIjoyMDk3MzYwMjk1fQ.LDFZJWQFmr4DoBzGcdcXEzrBmDuBzyTmA950IP-hF-Y"
+
 # Initialize Supabase client
 supabase: Client = None
 if not MOCK_AUTH:
-    SUPABASE_URL = os.getenv("SUPABASE_URL")
-    SUPABASE_ANON_KEY = os.getenv("SUPABASE_ANON_KEY")
+    SUPABASE_URL = os.getenv("SUPABASE_URL", DEFAULT_SUPABASE_URL)
+    SUPABASE_ANON_KEY = os.getenv("SUPABASE_ANON_KEY", DEFAULT_SUPABASE_ANON_KEY)
 
     if not SUPABASE_URL or not SUPABASE_ANON_KEY:
         raise ValueError("Supabase URL and Anon Key must be set in environment variables when MOCK_AUTH is disabled.")
@@ -104,8 +109,8 @@ def get_shared_supabase_client():
     global shared_access_token, shared_user_id
     if MOCK_AUTH:
         return None
-    SUPABASE_URL = os.getenv("SUPABASE_URL")
-    SUPABASE_ANON_KEY = os.getenv("SUPABASE_ANON_KEY")
+    SUPABASE_URL = os.getenv("SUPABASE_URL", DEFAULT_SUPABASE_URL)
+    SUPABASE_ANON_KEY = os.getenv("SUPABASE_ANON_KEY", DEFAULT_SUPABASE_ANON_KEY)
     client = create_client(SUPABASE_URL, SUPABASE_ANON_KEY)
     
     # Try using cached session
@@ -146,8 +151,8 @@ def get_shared_supabase_client():
 def get_user_supabase_client():
     if MOCK_AUTH:
         return None
-    SUPABASE_URL = os.getenv("SUPABASE_URL")
-    SUPABASE_ANON_KEY = os.getenv("SUPABASE_ANON_KEY")
+    SUPABASE_URL = os.getenv("SUPABASE_URL", DEFAULT_SUPABASE_URL)
+    SUPABASE_ANON_KEY = os.getenv("SUPABASE_ANON_KEY", DEFAULT_SUPABASE_ANON_KEY)
     client = create_client(SUPABASE_URL, SUPABASE_ANON_KEY)
     if 'user' in session and 'access_token' in session['user']:
         client.postgrest.auth(session['user']['access_token'])
@@ -1497,8 +1502,8 @@ def export_readings_generic(utility_name, doc_no, fields_list):
 def get_admin_supabase_client():
     if MOCK_AUTH:
         return None
-    SUPABASE_URL = os.getenv("SUPABASE_URL")
-    SUPABASE_SERVICE_ROLE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
+    SUPABASE_URL = os.getenv("SUPABASE_URL", DEFAULT_SUPABASE_URL)
+    SUPABASE_SERVICE_ROLE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY", DEFAULT_SUPABASE_SERVICE_ROLE_KEY)
     if not SUPABASE_URL or not SUPABASE_SERVICE_ROLE_KEY:
         raise ValueError("Supabase URL and Service Role Key must be set for admin operations.")
     return create_client(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
