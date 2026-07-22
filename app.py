@@ -105,6 +105,17 @@ shared_user_id = None
 def get_current_ist_date():
     return (datetime.utcnow() + timedelta(hours=5, minutes=30)).strftime("%Y-%m-%d")
 
+def resolve_target_month():
+    req_month = request.args.get('month') or request.form.get('month')
+    if req_month and len(req_month.strip()) == 7:
+        try:
+            dt = datetime.strptime(req_month.strip(), "%Y-%m")
+            return dt.strftime("%Y-%m"), dt.strftime("%B %Y")
+        except ValueError:
+            pass
+    current_date = datetime.utcnow() + timedelta(hours=5, minutes=30)
+    return current_date.strftime("%Y-%m"), current_date.strftime("%B %Y")
+
 def get_shared_supabase_client():
     global shared_access_token, shared_user_id
     if MOCK_AUTH:
@@ -394,9 +405,7 @@ def documents_checklists():
 @app.route('/api/readings/power')
 @login_required
 def api_power_readings():
-    current_date = datetime.utcnow() + timedelta(hours=5, minutes=30)
-    current_month_prefix = current_date.strftime("%Y-%m")
-    month_year_display = current_date.strftime("%B %Y")
+    current_month_prefix, month_year_display = resolve_target_month()
     history = get_all_historical_readings('power')
     month_data = [entry for entry in history if entry['date'].startswith(current_month_prefix)]
     return {"status": "success", "data": month_data, "month_year": month_year_display}
@@ -405,9 +414,7 @@ def api_power_readings():
 @app.route('/api/readings/water')
 @login_required
 def api_water_readings():
-    current_date = datetime.utcnow() + timedelta(hours=5, minutes=30)
-    current_month_prefix = current_date.strftime("%Y-%m")
-    month_year_display = current_date.strftime("%B %Y")
+    current_month_prefix, month_year_display = resolve_target_month()
     history = get_all_historical_readings('water')
     month_data = [entry for entry in history if entry['date'].startswith(current_month_prefix)]
     return {"status": "success", "data": month_data, "month_year": month_year_display}
@@ -425,9 +432,7 @@ def api_genset2_readings():
     return get_genset_api_readings(2)
 
 def get_genset_api_readings(genset_id):
-    current_date = datetime.utcnow() + timedelta(hours=5, minutes=30)
-    current_month_prefix = current_date.strftime("%Y-%m")
-    month_year_display = current_date.strftime("%B %Y")
+    current_month_prefix, month_year_display = resolve_target_month()
     history = get_all_historical_readings(f"genset{genset_id}")
     month_data = [entry for entry in history if entry['date'].startswith(current_month_prefix)]
     return {"status": "success", "data": month_data, "month_year": month_year_display}
@@ -463,9 +468,7 @@ def api_canteen_waste_data():
     return get_readings_api_generic("canteen_waste")
 
 def get_readings_api_generic(db_key):
-    current_date = datetime.utcnow() + timedelta(hours=5, minutes=30)
-    current_month_prefix = current_date.strftime("%Y-%m")
-    month_year_display = current_date.strftime("%B %Y")
+    current_month_prefix, month_year_display = resolve_target_month()
     history = get_all_historical_readings(db_key)
     month_data = [entry for entry in history if entry['date'].startswith(current_month_prefix)]
     return {"status": "success", "data": month_data, "month_year": month_year_display}
@@ -754,13 +757,14 @@ def water_readings():
 
 # Export Power House readings to CSV/Excel
 @app.route('/dashboard/daily/readings/power/export')
-@admin_required
+@login_required
 def export_power(target_month=None, return_raw=False):
     import io
     import openpyxl
     from flask import send_file
     
     # Get target month in YYYY-MM format based on IST
+    target_month = target_month or request.args.get('month') or request.form.get('month')
     current_month_prefix = target_month if target_month else get_current_ist_date()[:7] # "YYYY-MM"
     
     # Load template
@@ -924,13 +928,14 @@ def export_power(target_month=None, return_raw=False):
 
 # Export Water Valve readings to CSV/Excel
 @app.route('/dashboard/daily/readings/water/export')
-@admin_required
+@login_required
 def export_water(target_month=None, return_raw=False):
     import io
     import openpyxl
     from flask import send_file
     
     # Get target month in YYYY-MM format based on IST
+    target_month = target_month or request.args.get('month') or request.form.get('month')
     current_month_prefix = target_month if target_month else get_current_ist_date()[:7] # "YYYY-MM"
     
     # Load template
@@ -1060,14 +1065,16 @@ def export_water(target_month=None, return_raw=False):
 
 # Export Genset 1 checklist readings to DOCX
 @app.route('/dashboard/daily/checklists/genset1/export')
-@admin_required
+@login_required
 def export_genset1(target_month=None, return_raw=False):
+    target_month = target_month or request.args.get('month') or request.form.get('month')
     return export_genset_generic(1, "125kW", target_month=target_month, return_raw=return_raw)
 
 # Export Genset 2 checklist readings to DOCX
 @app.route('/dashboard/daily/checklists/genset2/export')
-@admin_required
+@login_required
 def export_genset2(target_month=None, return_raw=False):
+    target_month = target_month or request.args.get('month') or request.form.get('month')
     return export_genset_generic(2, "160kW", target_month=target_month, return_raw=return_raw)
 
 def export_genset_generic(genset_id, capacity_str, target_month=None, return_raw=False):
@@ -1076,6 +1083,7 @@ def export_genset_generic(genset_id, capacity_str, target_month=None, return_raw
     from flask import send_file
     
     # Get target month in YYYY-MM format based on IST
+    target_month = target_month or request.args.get('month') or request.form.get('month')
     current_month_prefix = target_month if target_month else get_current_ist_date()[:7] # "YYYY-MM"
     db_key = f"genset{genset_id}"
     template_name = f"GENSET-{genset_id} DAILY CHECKLIST.docx"
@@ -1172,49 +1180,54 @@ def export_genset_generic(genset_id, capacity_str, target_month=None, return_raw
 
 # Export Genset 125kW readings to Excel
 @app.route('/dashboard/daily/readings/genset_125kw/export')
-@admin_required
+@login_required
 def export_genset_125kw_readings(target_month=None, return_raw=False):
     genset_fields = [
         'battery_volt', 'diesel_filling', 'run_hours', 'voltage',
         'kwh', 'diesel_level', 'radiator_water', 'caretaker_sign'
     ]
+    target_month = target_month or request.args.get('month') or request.form.get('month')
     return export_readings_generic("genset_125kw", "R/MAI/GR/125", genset_fields, target_month=target_month, return_raw=return_raw)
 
 # Export Genset 160kW readings to Excel
 @app.route('/dashboard/daily/readings/genset_160kw/export')
-@admin_required
+@login_required
 def export_genset_160kw_readings(target_month=None, return_raw=False):
     genset_fields = [
         'battery_volt', 'diesel_filling', 'run_hours', 'voltage',
         'kwh', 'diesel_level', 'radiator_water', 'caretaker_sign'
     ]
+    target_month = target_month or request.args.get('month') or request.form.get('month')
     return export_readings_generic("genset_160kw", "R/MAI/GR/160", genset_fields, target_month=target_month, return_raw=return_raw)
 
 # Export Compressor-1 readings to Excel
 @app.route('/dashboard/daily/readings/compressor1/export')
-@admin_required
+@login_required
 def export_compressor1_readings(target_month=None, return_raw=False):
     compressor_fields = [
         'run_hours', 'load_hours', 'motor_hours', 'bar',
         'temp', 'caretaker_sign'
     ]
+    target_month = target_month or request.args.get('month') or request.form.get('month')
     return export_readings_generic("compressor1", "R/MAI/CR/01", compressor_fields, target_month=target_month, return_raw=return_raw)
 
 # Export Compressor-2 readings to Excel
 @app.route('/dashboard/daily/readings/compressor2/export')
-@admin_required
+@login_required
 def export_compressor2_readings(target_month=None, return_raw=False):
     compressor_fields = [
         'run_hours', 'load_hours', 'motor_hours', 'bar',
         'temp', 'caretaker_sign'
     ]
+    target_month = target_month or request.args.get('month') or request.form.get('month')
     return export_readings_generic("compressor2", "R/MAI/CR/02", compressor_fields, target_month=target_month, return_raw=return_raw)
 
 # Export Canteen Waste to Excel
 @app.route('/dashboard/daily/readings/canteen_waste/export')
-@admin_required
+@login_required
 def export_canteen_waste(target_month=None, return_raw=False):
     canteen_fields = ['meals_waste', 'vegetable_waste', 'caretaker_sign']
+    target_month = target_month or request.args.get('month') or request.form.get('month')
     return export_readings_generic("canteen_waste", "R/MAI/CW", canteen_fields, target_month=target_month, return_raw=return_raw)
 
 def export_readings_generic(utility_name, doc_no, fields_list, target_month=None, return_raw=False):
@@ -1222,6 +1235,7 @@ def export_readings_generic(utility_name, doc_no, fields_list, target_month=None
     import openpyxl
     from flask import send_file
     
+    target_month = target_month or request.args.get('month') or request.form.get('month')
     current_month_prefix = target_month if target_month else get_current_ist_date()[:7] # "YYYY-MM"
     if utility_name == "genset_125kw":
         template_name = "125kW readings.xlsx"
@@ -1479,7 +1493,8 @@ def export_readings_generic(utility_name, doc_no, fields_list, target_month=None
 
 # Export All Maintenance Reports into a single ZIP file for selected month
 @app.route('/admin/export/all', methods=['GET', 'POST'])
-@admin_required
+@app.route('/dashboard/documents/export/all', methods=['GET', 'POST'])
+@login_required
 def export_all_reports():
     import io
     import zipfile

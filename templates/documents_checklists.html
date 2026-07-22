@@ -41,42 +41,63 @@
     <span class="breadcrumb-active">Checklists</span>
   </div>
 
+  <!-- Month Selector & Master Export Card -->
+  <div class="glass-card" style="padding: 20px 24px; margin-bottom: 24px; border: 1px solid var(--border-card); background: rgba(255,255,255,0.02);">
+    <form action="{{ url_for('export_all_reports') }}" method="GET" id="form-master-export" style="margin: 0; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px;">
+      <div>
+        <h3 style="font-size: 16px; font-weight: 600; color: var(--text-primary); margin: 0 0 4px 0;">
+          <i class="fa-solid fa-calendar-days" style="color: var(--color-primary); margin-right: 8px;"></i> Select Month for Export & Online View
+        </h3>
+        <p style="font-size: 12px; color: var(--text-muted); margin: 0;">
+          Choose any calendar month to view generator checklist logs or download checklist documents for that specific month.
+        </p>
+      </div>
+
+      <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+        <div class="form-group" style="margin: 0; min-width: 180px;">
+          <input type="month" name="month" id="doc-month-picker" class="form-control" style="height: 42px; cursor: pointer;" required>
+        </div>
+
+        <button type="submit" class="btn" style="background: linear-gradient(135deg, #6366f1 0%, #3b82f6 100%); height: 42px; font-size: 14px; font-weight: 600; border: none; cursor: pointer; padding: 0 20px;">
+          <i class="fa-solid fa-file-zipper" style="margin-right: 8px;"></i>
+          <span>Download All Reports (.ZIP)</span>
+        </button>
+      </div>
+    </form>
+  </div>
+
   <!-- Documents Grid -->
   <div class="nav-grid">
-    <!-- Genset-1 (125kW) Excel Card -->
+    <!-- Genset-1 (125kW) Word Checklist Card -->
     <div class="nav-card" style="height: auto; align-items: center; justify-content: space-between; padding: 24px;">
       <div class="nav-card-icon" style="color: var(--color-warning); margin: 0 0 8px 0;">
-        <i class="fa-solid fa-file-excel"></i>
+        <i class="fa-solid fa-file-word"></i>
       </div>
-      <span class="nav-card-title" style="margin-bottom: 4px; text-align: center;">Genset-1 (125kW) Excel</span>
-      <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 16px; text-align: center;">Monthly 125kW backup generator status checklist log.</p>
+      <span class="nav-card-title" style="margin-bottom: 4px; text-align: center;">Genset-1 (125kW) Checklist</span>
+      <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 16px; text-align: center;">Monthly 125kW backup generator status checklist (.docx).</p>
       
       <div style="display: flex; gap: 8px; width: 100%; justify-content: center; flex-wrap: wrap;">
-        {% if user.role == 'admin' %}
-        <a href="{{ url_for('export_genset1') }}" class="btn" style="width: auto; padding: 8px 16px; font-size: 13px; background-color: var(--color-primary); display: inline-flex; align-items: center; gap: 6px; text-decoration: none; height: auto;">
+        <a href="{{ url_for('export_genset1') }}" class="btn doc-download-btn" data-base-url="{{ url_for('export_genset1') }}" style="width: auto; padding: 8px 16px; font-size: 13px; background-color: var(--color-primary); display: inline-flex; align-items: center; gap: 6px; text-decoration: none; height: auto;">
           <i class="fa-solid fa-download"></i> Download
         </a>
-        {% endif %}
         <button class="btn btn-secondary btn-view-doc" data-type="genset1" style="width: auto; padding: 8px 16px; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; height: auto;">
           <i class="fa-solid fa-eye"></i> View Online
         </button>
       </div>
     </div>
 
-    <!-- Genset-2 (160kW) Excel Card -->
+    <!-- Genset-2 (160kW) Word Checklist Card -->
     <div class="nav-card" style="height: auto; align-items: center; justify-content: space-between; padding: 24px;">
       <div class="nav-card-icon" style="color: #ec4899; margin: 0 0 8px 0;">
-        <i class="fa-solid fa-file-excel"></i>
+        <i class="fa-solid fa-file-word"></i>
       </div>
-      <span class="nav-card-title" style="margin-bottom: 4px; text-align: center;">Genset-2 (160kW) Excel</span>
-      <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 16px; text-align: center;">Monthly 160kW backup generator status checklist log.</p>
+      <span class="nav-card-title" style="margin-bottom: 4px; text-align: center;">Genset-2 (160kW) Checklist</span>
+      <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 16px; text-align: center;">Monthly 160kW backup generator status checklist (.docx).</p>
       
       <div style="display: flex; gap: 8px; width: 100%; justify-content: center; flex-wrap: wrap;">
-        {% if user.role == 'admin' %}
-        <a href="{{ url_for('export_genset2') }}" class="btn" style="width: auto; padding: 8px 16px; font-size: 13px; background-color: var(--color-primary); display: inline-flex; align-items: center; gap: 6px; text-decoration: none; height: auto;">
+        <a href="{{ url_for('export_genset2') }}" class="btn doc-download-btn" data-base-url="{{ url_for('export_genset2') }}" style="width: auto; padding: 8px 16px; font-size: 13px; background-color: var(--color-primary); display: inline-flex; align-items: center; gap: 6px; text-decoration: none; height: auto;">
           <i class="fa-solid fa-download"></i> Download
         </a>
-        {% endif %}
         <button class="btn btn-secondary btn-view-doc" data-type="genset2" style="width: auto; padding: 8px 16px; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; height: auto;">
           <i class="fa-solid fa-eye"></i> View Online
         </button>
@@ -97,9 +118,96 @@
       <!-- Table will be rendered here dynamically -->
       <div id="viewer-loader" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px; color: var(--text-secondary); gap: 12px;">
         <i class="fa-solid fa-circle-notch fa-spin" style="font-size: 28px; color: var(--color-primary);"></i>
-        <span>Loading telemetry data...</span>
+        <span>Loading checklist data...</span>
       </div>
     </div>
   </div>
 </div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+  var monthPicker = document.getElementById("doc-month-picker");
+  
+  if (monthPicker) {
+    var now = new Date();
+    var yyyy = now.getFullYear();
+    var mm = String(now.getMonth() + 1).padStart(2, '0');
+    monthPicker.value = yyyy + "-" + mm;
+    
+    function updateDownloadUrls() {
+      var mVal = monthPicker.value;
+      document.querySelectorAll("a.doc-download-btn").forEach(function(btn) {
+        var baseUrl = btn.getAttribute("data-base-url");
+        if (baseUrl) {
+          btn.href = baseUrl + "?month=" + mVal;
+        }
+      });
+    }
+    
+    monthPicker.addEventListener("change", updateDownloadUrls);
+    updateDownloadUrls();
+  }
+
+  // Document online viewer script
+  var modalViewer = document.getElementById("modal-viewer");
+  var btnCloseViewer = document.getElementById("btn-close-viewer");
+  var viewerTitle = document.getElementById("viewer-title");
+  var viewerContent = document.getElementById("viewer-content");
+
+  if (btnCloseViewer) {
+    btnCloseViewer.addEventListener("click", function() {
+      modalViewer.style.display = "none";
+    });
+  }
+
+  document.querySelectorAll(".btn-view-doc").forEach(function(btn) {
+    btn.addEventListener("click", function() {
+      var docType = this.getAttribute("data-type");
+      var selectedMonth = monthPicker ? monthPicker.value : "";
+      modalViewer.style.display = "flex";
+      viewerContent.innerHTML = `
+        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px; color: var(--text-secondary); gap: 12px;">
+          <i class="fa-solid fa-circle-notch fa-spin" style="font-size: 28px; color: var(--color-primary);"></i>
+          <span>Loading checklist data...</span>
+        </div>
+      `;
+
+      var apiMap = {
+        'genset1': '/api/readings/genset1',
+        'genset2': '/api/readings/genset2'
+      };
+
+      var titleMap = {
+        'genset1': 'Genset-1 (125kW) Daily Checklist Log',
+        'genset2': 'Genset-2 (160kW) Daily Checklist Log'
+      };
+
+      viewerTitle.innerHTML = `<i class="fa-solid fa-file-invoice"></i> ${titleMap[docType] || 'Checklist Log'}`;
+
+      var fetchUrl = (apiMap[docType] || `/api/readings/${docType}`) + (selectedMonth ? `?month=${selectedMonth}` : '');
+
+      fetch(fetchUrl)
+        .then(res => res.json())
+        .then(data => {
+          if (data.status === 'success' && data.data && data.data.length > 0) {
+            var html = `<div style="padding: 12px; font-weight: 600; color: var(--color-primary);">Month: ${data.month_year} (${data.data.length} Records)</div>`;
+            html += `<table class="data-table" style="width: 100%; border-collapse: collapse; font-size: 12px;"><thead><tr><th style="padding: 8px; border: 1px solid var(--border-card);">Date</th><th style="padding: 8px; border: 1px solid var(--border-card);">Checkpoints Data</th></tr></thead><tbody>`;
+            
+            data.data.forEach(row => {
+              html += `<tr><td style="padding: 8px; border: 1px solid var(--border-card); font-weight: 600;">${row.date}</td><td style="padding: 8px; border: 1px solid var(--border-card);"><pre style="margin: 0; font-family: monospace; font-size: 11px;">${JSON.stringify(row.data, null, 2)}</pre></td></tr>`;
+            });
+
+            html += `</tbody></table>`;
+            viewerContent.innerHTML = html;
+          } else {
+            viewerContent.innerHTML = `<div style="padding: 40px; text-align: center; color: var(--text-muted);"><i class="fa-solid fa-folder-open" style="font-size: 32px; margin-bottom: 8px; display: block;"></i>No checklist records found for ${data.month_year || selectedMonth || 'this month'}.</div>`;
+          }
+        })
+        .catch(err => {
+          viewerContent.innerHTML = `<div style="padding: 40px; text-align: center; color: var(--color-danger);">Failed to load document data: ${err.message}</div>`;
+        });
+    });
+  });
+});
+</script>
 {% endblock %}
