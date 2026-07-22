@@ -755,13 +755,13 @@ def water_readings():
 # Export Power House readings to CSV/Excel
 @app.route('/dashboard/daily/readings/power/export')
 @admin_required
-def export_power():
+def export_power(target_month=None, return_raw=False):
     import io
     import openpyxl
     from flask import send_file
     
-    # Get the current month and year in YYYY-MM format based on IST
-    current_month_prefix = get_current_ist_date()[:7] # "YYYY-MM"
+    # Get target month in YYYY-MM format based on IST
+    current_month_prefix = target_month if target_month else get_current_ist_date()[:7] # "YYYY-MM"
     
     # Load template
     template_path = os.path.join(os.path.dirname(__file__), "power_readings.xlsx")
@@ -818,25 +818,21 @@ def export_power():
         # Apply yellow fill to actual Sunday rows
         for D in sundays:
             if 1 <= D <= 15:
-                r1 = D + 3
+                row_ph1 = D + 3
+                row_ph2 = D + 38
             elif 16 <= D <= 30:
-                r1 = D + 5
+                row_ph1 = D + 5
+                row_ph2 = D + 40
             else:
-                r1 = None
+                row_ph1 = None
+                row_ph2 = None
                 
-            if 1 <= D <= 15:
-                r2 = D + 38
-            elif 16 <= D <= 30:
-                r2 = D + 40
-            else:
-                r2 = None
-                
-            if r1:
+            if row_ph1:
                 for c in range(1, 14):
-                    ws.cell(row=r1, column=c).fill = yellow_fill
-            if r2:
+                    ws.cell(row=row_ph1, column=c).fill = yellow_fill
+            if row_ph2:
                 for c in range(1, 10):
-                    ws.cell(row=r2, column=c).fill = yellow_fill
+                    ws.cell(row=row_ph2, column=c).fill = yellow_fill
     except Exception as e:
         app.logger.error(f"Error loading/clearing Excel template: {str(e)}")
         return f"Error loading Excel template: {str(e)}", 500
@@ -844,57 +840,47 @@ def export_power():
     # Get all historical readings
     history = get_all_historical_readings('power')
     
+    # Helper to safely parse numbers
+    def to_num(val):
+        if val == '' or val is None:
+            return None
+        try:
+            if '.' in val:
+                return float(val)
+            return int(val)
+        except ValueError:
+            return val
+            
     # Populate the table cells
     for entry in history:
         date_str = entry['date'] # "YYYY-MM-DD"
-        # Only populate readings for the current month
         if not date_str.startswith(current_month_prefix):
             continue
             
         data = entry['data']
         try:
-            # Parse day of month D
             day_part = date_str.split('-')[2]
             D = int(day_part)
         except Exception:
             continue
             
-        # Determine row number based on layout mapping formulas
-        # Power House 1
         if 1 <= D <= 15:
             row_ph1 = D + 3
-        elif 16 <= D <= 30:
-            row_ph1 = D + 5
-        else:
-            row_ph1 = None
-            
-        # Power House 2
-        if 1 <= D <= 15:
             row_ph2 = D + 38
         elif 16 <= D <= 30:
+            row_ph1 = D + 5
             row_ph2 = D + 40
         else:
+            row_ph1 = None
             row_ph2 = None
             
-        # Helper to safely parse numbers
-        def to_num(val):
-            if val == '' or val is None:
-                return None
-            try:
-                if '.' in val:
-                    return float(val)
-                return int(val)
-            except ValueError:
-                return val
-
-        # Write Power House 1 cells
         if row_ph1:
             ws.cell(row=row_ph1, column=2, value=to_num(data.get('ph1_line_import')))
             ws.cell(row=row_ph1, column=3, value=to_num(data.get('ph1_line_import_pf')))
             ws.cell(row=row_ph1, column=4, value=to_num(data.get('ph1_line_export')))
             ws.cell(row=row_ph1, column=5, value=to_num(data.get('ph1_line_export_pf')))
-            ws.cell(row=row_ph1, column=6, value=to_num(data.get('ph1_solar_75')))
-            ws.cell(row=row_ph1, column=7, value=to_num(data.get('ph1_solar_75_pf')))
+            ws.cell(row=row_ph1, column=6, value=to_num(data.get('ph1_solar_50')))
+            ws.cell(row=row_ph1, column=7, value=to_num(data.get('ph1_solar_50_pf')))
             ws.cell(row=row_ph1, column=8, value=to_num(data.get('ph1_weld_import')))
             ws.cell(row=row_ph1, column=9, value=to_num(data.get('ph1_weld_import_pf')))
             ws.cell(row=row_ph1, column=10, value=to_num(data.get('ph1_weld_export')))
@@ -902,7 +888,6 @@ def export_power():
             ws.cell(row=row_ph1, column=12, value=to_num(data.get('ph1_solar_33')))
             ws.cell(row=row_ph1, column=13, value=to_num(data.get('ph1_solar_33_pf')))
             
-        # Write Power House 2 cells
         if row_ph2:
             ws.cell(row=row_ph2, column=2, value=to_num(data.get('ph2_line_import')))
             ws.cell(row=row_ph2, column=3, value=to_num(data.get('ph2_line_import_pf')))
@@ -913,7 +898,6 @@ def export_power():
             ws.cell(row=row_ph2, column=8, value=to_num(data.get('ph2_weld_import')))
             ws.cell(row=row_ph2, column=9, value=to_num(data.get('ph2_weld_import_pf')))
 
-    # Fill in the Month/Year header cells
     try:
         parts = current_month_prefix.split('-')
         month_year_str = f"{parts[1]}/{parts[0]}"
@@ -923,28 +907,31 @@ def export_power():
     ws.cell(row=1, column=11, value=f"DOC NO: R/MAI/EB\nMONTH/YEAR: {month_year_str}")
     ws.cell(row=36, column=8, value=f"DOC NO: R/MAI/EB\nMONTH/YEAR: {month_year_str}")
     
-    # Save the file to memory
     file_stream = io.BytesIO()
     wb.save(file_stream)
     file_stream.seek(0)
     
+    download_filename = f"power_readings_{current_month_prefix}.xlsx"
+    if return_raw:
+        return (file_stream.getvalue(), download_filename)
+        
     return send_file(
         file_stream,
         mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         as_attachment=True,
-        download_name="power_readings.xlsx"
+        download_name=download_filename
     )
 
 # Export Water Valve readings to CSV/Excel
 @app.route('/dashboard/daily/readings/water/export')
 @admin_required
-def export_water():
+def export_water(target_month=None, return_raw=False):
     import io
     import openpyxl
     from flask import send_file
     
-    # Get the current month and year in YYYY-MM format based on IST
-    current_month_prefix = get_current_ist_date()[:7] # "YYYY-MM"
+    # Get target month in YYYY-MM format based on IST
+    current_month_prefix = target_month if target_month else get_current_ist_date()[:7] # "YYYY-MM"
     
     # Load template
     template_path = os.path.join(os.path.dirname(__file__), "water_readings.xlsx")
@@ -1020,21 +1007,16 @@ def export_water():
     # Populate the table cells
     for entry in history:
         date_str = entry['date'] # "YYYY-MM-DD"
-        # Only populate readings for the current month
         if not date_str.startswith(current_month_prefix):
             continue
             
         data = entry['data']
         try:
-            # Parse day of month D
             day_part = date_str.split('-')[2]
             D = int(day_part)
         except Exception:
             continue
             
-        # Determine row number based on layout mapping formulas
-        # S.NO 1 to 15 is row D + 3
-        # S.NO 16 to 30 is row D + 5
         if 1 <= D <= 15:
             row_idx = D + 3
         elif 16 <= D <= 30:
@@ -1042,12 +1024,10 @@ def export_water():
         else:
             row_idx = None
             
-        # Write Valves 1 to 16 cells (columns B to Q, indices 2 to 17)
         if row_idx:
             for i in range(1, 17):
                 ws.cell(row=row_idx, column=i+1, value=to_num(data.get(f'valve_{i}')))
                 
-    # Fill in the Month/Year header cells (merged P1:Q1, column P is 16)
     try:
         parts = current_month_prefix.split('-')
         month_year_str = f"{parts[1]}/{parts[0]}"
@@ -1063,37 +1043,40 @@ def export_water():
         wrap_text=True
     )
     
-    # Save the file to memory
     file_stream = io.BytesIO()
     wb.save(file_stream)
     file_stream.seek(0)
     
+    download_filename = f"water_readings_{current_month_prefix}.xlsx"
+    if return_raw:
+        return (file_stream.getvalue(), download_filename)
+        
     return send_file(
         file_stream,
         mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         as_attachment=True,
-        download_name="water_readings.xlsx"
+        download_name=download_filename
     )
 
-# Export Genset 1 checklist readings to Excel
+# Export Genset 1 checklist readings to DOCX
 @app.route('/dashboard/daily/checklists/genset1/export')
 @admin_required
-def export_genset1():
-    return export_genset_generic(1, "125kW")
+def export_genset1(target_month=None, return_raw=False):
+    return export_genset_generic(1, "125kW", target_month=target_month, return_raw=return_raw)
 
-# Export Genset 2 checklist readings to Excel
+# Export Genset 2 checklist readings to DOCX
 @app.route('/dashboard/daily/checklists/genset2/export')
 @admin_required
-def export_genset2():
-    return export_genset_generic(2, "160kW")
+def export_genset2(target_month=None, return_raw=False):
+    return export_genset_generic(2, "160kW", target_month=target_month, return_raw=return_raw)
 
-def export_genset_generic(genset_id, capacity_str):
+def export_genset_generic(genset_id, capacity_str, target_month=None, return_raw=False):
     import io
     from docx import Document
     from flask import send_file
     
-    # Get the current month and year in YYYY-MM format based on IST
-    current_month_prefix = get_current_ist_date()[:7] # "YYYY-MM"
+    # Get target month in YYYY-MM format based on IST
+    current_month_prefix = target_month if target_month else get_current_ist_date()[:7] # "YYYY-MM"
     db_key = f"genset{genset_id}"
     template_name = f"GENSET-{genset_id} DAILY CHECKLIST.docx"
     template_path = os.path.join(os.path.dirname(__file__), template_name)
@@ -1176,78 +1159,70 @@ def export_genset_generic(genset_id, capacity_str):
     doc.save(file_stream)
     file_stream.seek(0)
     
+    download_filename = f"genset{genset_id}_checklist_{current_month_prefix}.docx"
+    if return_raw:
+        return (file_stream.getvalue(), download_filename)
+        
     return send_file(
         file_stream,
         mimetype="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
         as_attachment=True,
-        download_name=f"genset{genset_id}_checklist_{current_month_prefix}.docx"
-    )
-    
-    # Save the file to memory
-    file_stream = io.BytesIO()
-    wb.save(file_stream)
-    file_stream.seek(0)
-    
-    return send_file(
-        file_stream,
-        mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        as_attachment=True,
-        download_name=f"genset{genset_id}_readings.xlsx"
+        download_name=download_filename
     )
 
 # Export Genset 125kW readings to Excel
 @app.route('/dashboard/daily/readings/genset_125kw/export')
 @admin_required
-def export_genset_125kw_readings():
+def export_genset_125kw_readings(target_month=None, return_raw=False):
     genset_fields = [
         'battery_volt', 'diesel_filling', 'run_hours', 'voltage',
         'kwh', 'diesel_level', 'radiator_water', 'caretaker_sign'
     ]
-    return export_readings_generic("genset_125kw", "R/MAI/GR/125", genset_fields)
+    return export_readings_generic("genset_125kw", "R/MAI/GR/125", genset_fields, target_month=target_month, return_raw=return_raw)
 
 # Export Genset 160kW readings to Excel
 @app.route('/dashboard/daily/readings/genset_160kw/export')
 @admin_required
-def export_genset_160kw_readings():
+def export_genset_160kw_readings(target_month=None, return_raw=False):
     genset_fields = [
         'battery_volt', 'diesel_filling', 'run_hours', 'voltage',
         'kwh', 'diesel_level', 'radiator_water', 'caretaker_sign'
     ]
-    return export_readings_generic("genset_160kw", "R/MAI/GR/160", genset_fields)
+    return export_readings_generic("genset_160kw", "R/MAI/GR/160", genset_fields, target_month=target_month, return_raw=return_raw)
 
 # Export Compressor-1 readings to Excel
 @app.route('/dashboard/daily/readings/compressor1/export')
 @admin_required
-def export_compressor1_readings():
+def export_compressor1_readings(target_month=None, return_raw=False):
     compressor_fields = [
         'run_hours', 'load_hours', 'motor_hours', 'bar',
         'temp', 'caretaker_sign'
     ]
-    return export_readings_generic("compressor1", "R/MAI/CR/01", compressor_fields)
+    return export_readings_generic("compressor1", "R/MAI/CR/01", compressor_fields, target_month=target_month, return_raw=return_raw)
 
 # Export Compressor-2 readings to Excel
 @app.route('/dashboard/daily/readings/compressor2/export')
 @admin_required
-def export_compressor2_readings():
+def export_compressor2_readings(target_month=None, return_raw=False):
     compressor_fields = [
         'run_hours', 'load_hours', 'motor_hours', 'bar',
         'temp', 'caretaker_sign'
     ]
-    return export_readings_generic("compressor2", "R/MAI/CR/02", compressor_fields)
+    return export_readings_generic("compressor2", "R/MAI/CR/02", compressor_fields, target_month=target_month, return_raw=return_raw)
 
 # Export Canteen Waste to Excel
 @app.route('/dashboard/daily/readings/canteen_waste/export')
 @admin_required
-def export_canteen_waste():
+def export_canteen_waste(target_month=None, return_raw=False):
     canteen_fields = ['meals_waste', 'vegetable_waste', 'caretaker_sign']
-    return export_readings_generic("canteen_waste", "R/MAI/CW", canteen_fields)
+    return export_readings_generic("canteen_waste", "R/MAI/CW", canteen_fields, target_month=target_month, return_raw=return_raw)
 
-def export_readings_generic(utility_name, doc_no, fields_list):
+def export_readings_generic(utility_name, doc_no, fields_list, target_month=None, return_raw=False):
     import io
     import openpyxl
     from flask import send_file
     
-    current_month_prefix = get_current_ist_date()[:7] # "YYYY-MM"
+    current_month_prefix = target_month if target_month else get_current_ist_date()[:7] # "YYYY-MM"
     if utility_name == "genset_125kw":
         template_name = "125kW readings.xlsx"
     elif utility_name == "genset_160kw":
@@ -1491,11 +1466,58 @@ def export_readings_generic(utility_name, doc_no, fields_list):
     wb.save(file_stream)
     file_stream.seek(0)
     
+    download_filename = f"{utility_name}_readings_{current_month_prefix}.xlsx" if "waste" not in utility_name else f"{utility_name}_{current_month_prefix}.xlsx"
+    if return_raw:
+        return (file_stream.getvalue(), download_filename)
+        
     return send_file(
         file_stream,
         mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         as_attachment=True,
-        download_name=f"{utility_name}_readings.xlsx" if "waste" not in utility_name else f"{utility_name}.xlsx"
+        download_name=download_filename
+    )
+
+# Export All Maintenance Reports into a single ZIP file for selected month
+@app.route('/admin/export/all', methods=['GET', 'POST'])
+@admin_required
+def export_all_reports():
+    import io
+    import zipfile
+    from flask import send_file
+    
+    target_month = request.args.get('month') or request.form.get('month')
+    if not target_month or len(target_month.strip()) == 0:
+        target_month = get_current_ist_date()[:7]
+    else:
+        target_month = target_month.strip()
+        
+    reports = [
+        export_power(target_month=target_month, return_raw=True),
+        export_water(target_month=target_month, return_raw=True),
+        export_genset_125kw_readings(target_month=target_month, return_raw=True),
+        export_genset_160kw_readings(target_month=target_month, return_raw=True),
+        export_compressor1_readings(target_month=target_month, return_raw=True),
+        export_compressor2_readings(target_month=target_month, return_raw=True),
+        export_canteen_waste(target_month=target_month, return_raw=True),
+        export_genset1(target_month=target_month, return_raw=True),
+        export_genset2(target_month=target_month, return_raw=True),
+    ]
+    
+    zip_buffer = io.BytesIO()
+    with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
+        for item in reports:
+            if isinstance(item, tuple) and len(item) == 2:
+                content_bytes, filename = item
+                if isinstance(content_bytes, (bytes, bytearray)):
+                    zip_file.writestr(filename, content_bytes)
+                    
+    zip_buffer.seek(0)
+    
+    return send_file(
+        zip_buffer,
+        mimetype="application/zip",
+        as_attachment=True,
+        download_name=f"Maintenance_Reports_{target_month}.zip"
     )
 
 # Admin and User CRUD Management Routes

@@ -104,27 +104,60 @@
       </table>
     </div>
 
-    <!-- Right Column: Excel Reports Downloads -->
+    <!-- Right Column: Monthly Export Reports -->
     <div class="table-wrapper" style="display: flex; flex-direction: column; gap: 20px;">
-      <h2 class="table-wrapper-title" style="margin-bottom: 0;"><i class="fa-solid fa-file-excel"></i> Export Reports</h2>
+      <h2 class="table-wrapper-title" style="margin-bottom: 0;"><i class="fa-solid fa-file-zipper"></i> Export Reports</h2>
       
-      <!-- Power Card -->
-      <a href="{{ url_for('export_power') }}" class="nav-card" style="text-decoration: none; padding: 20px; align-items: flex-start; text-align: left; height: auto; width: 100%;">
-        <div class="nav-card-icon" style="color: var(--color-success); margin: 0 0 12px 0;">
-          <i class="fa-solid fa-file-excel"></i>
-        </div>
-        <span class="nav-card-title" style="font-size: 16px; margin: 0; font-weight: 600;">Power House Excel</span>
-        <p style="font-size: 11px; color: var(--text-muted); margin-top: 4px; line-height: 1.4;">Download solar & line readings spreadsheet template.</p>
-      </a>
+      <!-- Single Monthly Batch Export Card -->
+      <form action="{{ url_for('export_all_reports') }}" method="GET" style="margin: 0; width: 100%;">
+        <div class="glass-card" style="padding: 24px; display: flex; flex-direction: column; gap: 16px; border: 1px solid var(--border-card); background: rgba(255,255,255,0.02);">
+          <div>
+            <span style="font-size: 16px; font-weight: 600; color: var(--text-primary); display: block; margin-bottom: 4px;">
+              <i class="fa-solid fa-calendar-days" style="color: var(--color-primary); margin-right: 8px;"></i> Select Month for Export
+            </span>
+            <p style="font-size: 12px; color: var(--text-muted); margin: 0; line-height: 1.4;">
+              Choose any month to download all 9 telemetry readings & checklist documents in 1 single click.
+            </p>
+          </div>
 
-      <!-- Water Card -->
-      <a href="{{ url_for('export_water') }}" class="nav-card" style="text-decoration: none; padding: 20px; align-items: flex-start; text-align: left; height: auto; width: 100%;">
-        <div class="nav-card-icon" style="color: var(--color-info); margin: 0 0 12px 0;">
-          <i class="fa-solid fa-file-excel"></i>
+          <div class="form-group" style="margin: 0;">
+            <label for="export-month" style="display: block; font-size: 12px; color: var(--text-secondary); margin-bottom: 6px;">Select Month / Year</label>
+            <div class="input-container">
+              <i class="fa-solid fa-calendar input-icon"></i>
+              <input type="month" name="month" id="export-month" class="form-control" style="width: 100%; height: 45px; cursor: pointer;" required>
+            </div>
+          </div>
+
+          <button type="submit" class="btn" style="background: linear-gradient(135deg, #6366f1 0%, #3b82f6 100%); width: 100%; height: 48px; font-size: 15px; font-weight: 600; box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4); border: none; cursor: pointer;">
+            <i class="fa-solid fa-file-zipper" style="font-size: 18px; margin-right: 8px;"></i>
+            <span>Download All Reports (.ZIP)</span>
+          </button>
         </div>
-        <span class="nav-card-title" style="font-size: 16px; margin: 0; font-weight: 600;">Water Valves Excel</span>
-        <p style="font-size: 11px; color: var(--text-muted); margin-top: 4px; line-height: 1.4;">Download flow log spreadsheet template (Valves 1-16).</p>
-      </a>
+      </form>
+
+      <script>
+        // Set default month selector value to current month YYYY-MM
+        document.addEventListener("DOMContentLoaded", function() {
+          var monthInput = document.getElementById("export-month");
+          if (monthInput) {
+            var now = new Date();
+            var year = now.getFullYear();
+            var month = String(now.getMonth() + 1).padStart(2, '0');
+            monthInput.value = year + "-" + month;
+          }
+        });
+      </script>
+
+      <!-- Individual Quick Export Links -->
+      <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 10px;">
+        <span style="font-size: 12px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px;">Individual Downloads</span>
+        <a href="{{ url_for('export_power') }}" class="btn" style="background: rgba(255,255,255,0.05); border: 1px solid var(--border-card); justify-content: flex-start; text-decoration: none; padding: 10px 16px; font-size: 13px;">
+          <i class="fa-solid fa-file-excel" style="color: var(--color-success); margin-right: 10px;"></i> Power House Readings (.xlsx)
+        </a>
+        <a href="{{ url_for('export_water') }}" class="btn" style="background: rgba(255,255,255,0.05); border: 1px solid var(--border-card); justify-content: flex-start; text-decoration: none; padding: 10px 16px; font-size: 13px;">
+          <i class="fa-solid fa-file-excel" style="color: var(--color-info); margin-right: 10px;"></i> Water Valves Readings (.xlsx)
+        </a>
+      </div>
     </div>
   </div>
 </div>
