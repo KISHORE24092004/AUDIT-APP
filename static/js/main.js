@@ -1,3 +1,65 @@
+// 0. Theme Switcher (Light / Dark mode persistence and dynamic toggle)
+(function initThemeSwitcher() {
+  const STORAGE_KEY = 'portal_theme';
+  
+  function applyTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    const toggleBtns = document.querySelectorAll('.theme-toggle-btn');
+    toggleBtns.forEach(btn => {
+      const icon = btn.querySelector('i');
+      if (icon) {
+        if (theme === 'light') {
+          icon.className = 'fa-solid fa-sun';
+          btn.setAttribute('title', 'Switch to Dark Theme');
+          btn.style.color = '#f59e0b'; // Warm amber sun
+        } else {
+          icon.className = 'fa-solid fa-moon';
+          btn.setAttribute('title', 'Switch to Light Theme');
+          btn.style.color = 'var(--text-primary)';
+        }
+      }
+    });
+  }
+
+  // Load initial theme from localStorage (default: 'dark')
+  const savedTheme = localStorage.getItem(STORAGE_KEY) || 'dark';
+  applyTheme(savedTheme);
+
+  document.addEventListener('DOMContentLoaded', () => {
+    applyTheme(localStorage.getItem(STORAGE_KEY) || 'dark');
+
+    // Create toggle button if not already present
+    if (!document.querySelector('.theme-toggle-btn')) {
+      const headerRight = document.querySelector('.dashboard-header > div:last-child');
+      const toggleBtn = document.createElement('button');
+      toggleBtn.type = 'button';
+      toggleBtn.className = 'theme-toggle-btn';
+      toggleBtn.innerHTML = '<i class="fa-solid fa-moon"></i>';
+      
+      if (headerRight) {
+        // Insert as first element in header user bar
+        headerRight.insertBefore(toggleBtn, headerRight.firstChild);
+      } else {
+        // Floating button at top-right for unauthenticated pages
+        toggleBtn.style.position = 'fixed';
+        toggleBtn.style.top = '20px';
+        toggleBtn.style.right = '20px';
+        toggleBtn.style.zIndex = '9999';
+        document.body.appendChild(toggleBtn);
+      }
+      
+      applyTheme(localStorage.getItem(STORAGE_KEY) || 'dark');
+
+      toggleBtn.addEventListener('click', () => {
+        const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+        const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+        localStorage.setItem(STORAGE_KEY, newTheme);
+        applyTheme(newTheme);
+      });
+    }
+  });
+})();
+
 document.addEventListener('DOMContentLoaded', () => {
   // 1. Password Visibility Toggle
   const toggleButtons = document.querySelectorAll('.password-toggle');

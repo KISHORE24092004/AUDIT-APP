@@ -31,6 +31,98 @@
   --transition-normal: 0.3s ease;
 }
 
+/* Light Theme Variables */
+[data-theme="light"] {
+  --bg-main: #f8fafc;
+  --bg-card: rgba(255, 255, 255, 0.9);
+  --border-card: rgba(203, 213, 225, 0.8);
+  --border-focus: #4f46e5;
+  
+  --text-primary: #0f172a;
+  --text-secondary: #334155;
+  --text-muted: #64748b;
+  
+  --color-primary: #4f46e5;
+  --color-primary-hover: #4338ca;
+  --color-primary-glow: rgba(79, 70, 229, 0.15);
+  
+  --color-success: #059669;
+  --color-danger: #dc2626;
+  --color-warning: #d97706;
+  --color-info: #2563eb;
+}
+
+[data-theme="light"] body::before,
+[data-theme="light"] body::after {
+  opacity: 0.12;
+}
+
+[data-theme="light"] .glass-card,
+[data-theme="light"] .nav-card {
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+}
+
+[data-theme="light"] .form-control {
+  background: rgba(255, 255, 255, 0.95);
+  border-color: #cbd5e1;
+}
+
+[data-theme="light"] .table-input {
+  background: rgba(255, 255, 255, 0.95);
+  color: #0f172a;
+  border-color: #cbd5e1;
+}
+
+[data-theme="light"] .live-clock,
+[data-theme="light"] .user-badge {
+  background: rgba(255, 255, 255, 0.85);
+  border-color: #cbd5e1;
+}
+
+[data-theme="light"] .data-table th,
+[data-theme="light"] .viewer-table th {
+  background: rgba(241, 245, 249, 0.95);
+  color: #0f172a;
+}
+
+[data-theme="light"] .data-table td,
+[data-theme="light"] .viewer-table td {
+  border-color: #e2e8f0;
+}
+
+[data-theme="light"] .sunday-row {
+  background-color: rgba(254, 243, 199, 0.8) !important;
+  color: #78350f !important;
+}
+
+[data-theme="light"] pre {
+  color: #0f172a;
+}
+
+/* Theme Toggle Button */
+.theme-toggle-btn {
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
+  color: var(--text-primary);
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 16px;
+  transition: all var(--transition-fast);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  flex-shrink: 0;
+}
+
+.theme-toggle-btn:hover {
+  transform: scale(1.08);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
 * {
   box-sizing: border-box;
   margin: 0;
