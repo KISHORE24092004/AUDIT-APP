@@ -273,7 +273,11 @@ document.addEventListener('DOMContentLoaded', () => {
         modalViewer.style.display = 'flex';
         
         try {
-          const res = await fetch(`/api/readings/${type}`);
+          const monthPicker = document.getElementById('doc-month-picker') || document.getElementById('export-month');
+          const selectedMonth = monthPicker ? monthPicker.value : '';
+          const fetchUrl = `/api/readings/${type}` + (selectedMonth ? `?month=${selectedMonth}` : '');
+
+          const res = await fetch(fetchUrl);
           const resJson = await res.json();
           
           if (resJson.status === 'success') {
@@ -301,10 +305,17 @@ document.addEventListener('DOMContentLoaded', () => {
               viewerTitle.innerHTML = `<i class="fa-solid fa-trash-can" style="color: #ec4899;"></i> Canteen Waste Log - ${monthYearDisplay}`;
             }
             
-            // Compute days of current month
-            const now = new Date();
-            const year = now.getFullYear();
-            const month = now.getMonth();
+            // Compute days of selected month
+            let year, month;
+            if (selectedMonth && selectedMonth.includes('-')) {
+              const parts = selectedMonth.split('-');
+              year = parseInt(parts[0], 10);
+              month = parseInt(parts[1], 10) - 1;
+            } else {
+              const now = new Date();
+              year = now.getFullYear();
+              month = now.getMonth();
+            }
             const daysInMonth = new Date(year, month + 1, 0).getDate();
             
             let html = '';
