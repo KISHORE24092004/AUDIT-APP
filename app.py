@@ -116,45 +116,32 @@ def resolve_target_month():
     current_date = datetime.utcnow() + timedelta(hours=5, minutes=30)
     return current_date.strftime("%Y-%m"), current_date.strftime("%B %Y")
 
+shared_client_instance = None
+
 def get_shared_supabase_client():
-    global shared_access_token, shared_user_id
+    global shared_access_token, shared_user_id, shared_client_instance
     if MOCK_AUTH:
         return None
+    if shared_client_instance and shared_access_token:
+        return shared_client_instance
+
     SUPABASE_URL = os.getenv("SUPABASE_URL", DEFAULT_SUPABASE_URL)
     SUPABASE_ANON_KEY = os.getenv("SUPABASE_ANON_KEY", DEFAULT_SUPABASE_ANON_KEY)
     client = create_client(SUPABASE_URL, SUPABASE_ANON_KEY)
     
-    # Try using cached session
-    if shared_access_token and shared_user_id:
-        client.postgrest.auth(shared_access_token)
-        return client
-        
-    # Authenticate shared user
     try:
         res = client.auth.sign_in_with_password({
             "email": SHARED_USER_EMAIL,
             "password": SHARED_USER_PASSWORD
         })
-        shared_access_token = res.session.access_token
-        shared_user_id = res.user.id
-        client.postgrest.auth(shared_access_token)
-        return client
-    except Exception:
-        # If user does not exist, sign them up
-        try:
-            res = client.auth.sign_up({
-                "email": SHARED_USER_EMAIL,
-                "password": SHARED_USER_PASSWORD
-            })
-            if res.session:
-                shared_access_token = res.session.access_token
-                shared_user_id = res.user.id
-                client.postgrest.auth(shared_access_token)
-                return client
-        except Exception as e:
-            # We don't crash, we just log it and fallback to standard client
-            pass
-            
+        if res.session:
+            shared_access_token = res.session.access_token
+            shared_user_id = res.user.id
+            shared_client_instance = client
+            return client
+    except Exception as e:
+        app.logger.error(f"Error authenticating shared Supabase client: {str(e)}")
+        
     return client
 
 # Helper to get a request-specific authenticated Supabase client for the logged-in user
