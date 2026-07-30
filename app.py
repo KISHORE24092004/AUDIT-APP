@@ -1658,6 +1658,14 @@ def admin_delete_user(user_id):
                 flash("You cannot delete your own admin account.", "danger")
             else:
                 admin_client = get_admin_supabase_client()
+                try:
+                    target_user = admin_client.auth.admin.get_user_by_id(user_id)
+                    if target_user and target_user.user and target_user.user.email == SHARED_USER_EMAIL:
+                        flash("System shared telemetry account cannot be deleted.", "warning")
+                        return redirect(url_for('admin_panel'))
+                except Exception:
+                    pass
+
                 admin_client.auth.admin.delete_user(user_id)
                 flash("User deleted successfully from Supabase!", "success")
         except Exception as e:
